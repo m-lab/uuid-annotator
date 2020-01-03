@@ -18,8 +18,7 @@ like:
     /ndt/annotation/2009/03/18/${UUID}.json
 ```
 
-where `${UUID}` is the actual UUID of the connection under consideration. in keeping
-with both our uniform names best-practices and pusher best-practices.
+where `${UUID}` is the actual UUID of the connection under consideration. It will follow both our uniform names best-practices and pusher best-practices.
 
 The columns in the JSON file will initially be a subset of our standard columns:
 
