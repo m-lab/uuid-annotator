@@ -95,6 +95,9 @@ func TestHandlerWithNoAnnotatorsE2E(t *testing.T) {
 		t.Error("Unequal times:", filetime, tstamp)
 	}
 
+	// Verify that calling close does not cause a crash.
+	h.Close(hCtx, time.Now(), "")
+
 	// Cancel the handler's context and then wait to verify that the
 	// cancellation of the context causes ProcessIncomingRequests to terminate.
 	hCancel()
