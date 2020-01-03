@@ -29,10 +29,9 @@ The columns in the JSON file will initially be a subset of our standard columns:
 - `server.Network.ASNumber`
 
 Later versions can (and should!) add columns that include real-time switch
-counters, local machine load, and other indicators of measurement quality, but
-v1 will concentrate on location data in response to the EULA update from
-MaxMind. As we add columns to the annotator, we should consider adding them to
-our set of standard columns as well.
+counters, local machine load, and other indicators of measurement quality,
+but v1 will concentrate on location data. Each new column added to the
+annotator output should be added to our set of standard columns.
 
 The location annotation service will read from a MaxMind file served up via a
 file stored in a GCS bucket. It will periodically poll (in a memoryless manner)
@@ -40,11 +39,11 @@ to discover whether the file has changed.
 
 ## Performance
 
-This service will depend on tcp-info's UUID notification service, but no service
-should depend on the annotator. As such, we do not need to worry about the
-annotator slowing down an integrated service, we only need to worry about the
-annotator keeping up with the creation rate of TCP connections. We do not
-anticipate that being too difficult.
+This service will depend on tcp-info's UUID notification service, but no
+local service should depend on the annotator. As such, we do not need to
+worry about the annotator slowing down an integrated service, we only need to
+worry about the annotator keeping up with the creation rate of TCP
+connections. We do not anticipate that being too difficult.
 
 ## Availability
 

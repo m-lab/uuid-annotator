@@ -82,6 +82,11 @@ func (h *handler) annotateAndSave(j *job) {
 func (h *handler) ProcessIncomingRequests(ctx context.Context) {
 	for ctx.Err() == nil {
 		select {
+		// As written, this will be a busy-loop if the jobs channel is
+		// closed and the context is not canceled. Existing code does not
+		// close the jobs channel (and the jobs channel is not exported), and
+		// future code should close or export the jobs channel without modifying
+		// this loop and this comment.
 		case j, ok := <-h.jobs:
 			if ok && j != nil {
 				h.annotateAndSave(j)
