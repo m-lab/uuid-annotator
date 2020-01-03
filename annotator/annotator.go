@@ -1,3 +1,5 @@
+// Package annotator provides structs and interfaces used throughout the
+// program.
 package annotator
 
 import (

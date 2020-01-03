@@ -1,3 +1,5 @@
+// Package handler provides an eventsocket.Handler which creates JSON files in
+// response to UUID Open events.
 package handler
 
 import (
@@ -8,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/eventsocket"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
@@ -23,9 +26,7 @@ type job struct {
 func (j *job) WriteFile(dir string, data *annotator.Annotations) error {
 	// Serialize to JSON
 	contents, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
-	}
+	rtx.Must(err, "Could not serialize the Annotations struct to JSON. This should never happen.")
 
 	// Create the necessary subdirectories.
 	dir = dir + j.timestamp.Format("/2006/01/02/")
@@ -60,26 +61,30 @@ func (h *handler) Open(ctx context.Context, timestamp time.Time, uuid string, ID
 // Close is a no-op, implemented here to ensure that handler implements all of eventsocket.Handler.
 func (*handler) Close(ctx context.Context, timestamp time.Time, uuid string) {}
 
+func (h *handler) annotateAndSave(j *job) {
+	annotations := &annotator.Annotations{
+		UUID:      j.uuid,
+		Timestamp: j.timestamp,
+	}
+	for _, ann := range h.annotators {
+		err := ann.Annotate(j.id, annotations)
+		if err != nil {
+			metrics.AnnotationErrors.Inc()
+		}
+	}
+
+	if err := j.WriteFile(h.datadir, annotations); err != nil {
+		log.Println("Could not write metadata to file:", err)
+		metrics.MissedJobs.WithLabelValues("writefail").Inc()
+	}
+}
+
 func (h *handler) ProcessIncomingRequests(ctx context.Context) {
 	for ctx.Err() == nil {
 		select {
 		case j, ok := <-h.jobs:
 			if ok && j != nil {
-				annotations := &annotator.Annotations{
-					UUID:      j.uuid,
-					Timestamp: j.timestamp,
-				}
-				for _, ann := range h.annotators {
-					err := ann.Annotate(j.id, annotations)
-					if err != nil {
-						metrics.AnnotationErrors.Inc()
-					}
-				}
-
-				if err := j.WriteFile(h.datadir, annotations); err != nil {
-					log.Println("Could not write metadata to file:", err)
-					metrics.MissedJobs.WithLabelValues("writefail").Inc()
-				}
+				h.annotateAndSave(j)
 			}
 		case <-ctx.Done():
 		}

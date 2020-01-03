@@ -1,6 +1,6 @@
 # UUID-Annotator
-[![Version](https://img.shields.io/github/tag/m-lab/uuid-annotator.svg)](https://github.com/m-lab/uuid-annotator/releases)  [![Build Status](https://travis-ci.com/m-lab/uuid-annotator.svg?branch=master)](https://travis-ci.com/m-lab/uuid-annotator)  [![Coverage Status](https://coveralls.io/repos/m-lab/uuid-annotator/badge.svg?branch=master)](https://coveralls.io/github/m-lab/uuid-annotator?branch=master)  [![GoDoc](https://godoc.org/github.com/m-lab/uuid-annotator?status.svg)](https://godoc.org/github.com/m-lab/uuid-annotator)  [![Go Report Card](https://goreportcard.com/badge/github.com/m-lab/uuid-annotator)](https://goreportcard.com/report/github.com/m-lab/uuid-annotator)
 
+[![Version](https://img.shields.io/github/tag/m-lab/uuid-annotator.svg)](https://github.com/m-lab/uuid-annotator/releases)  [![Build Status](https://travis-ci.com/m-lab/uuid-annotator.svg?branch=master)](https://travis-ci.com/m-lab/uuid-annotator)  [![Coverage Status](https://coveralls.io/repos/m-lab/uuid-annotator/badge.svg?branch=master)](https://coveralls.io/github/m-lab/uuid-annotator?branch=master)  [![GoDoc](https://godoc.org/github.com/m-lab/uuid-annotator?status.svg)](https://godoc.org/github.com/m-lab/uuid-annotator)  [![Go Report Card](https://goreportcard.com/badge/github.com/m-lab/uuid-annotator)](https://goreportcard.com/report/github.com/m-lab/uuid-annotator)
 
 A system for generating and saving per-connection metadata in real-time on
 M-Lab's edge systems.
@@ -21,8 +21,7 @@ like:
 where `${UUID}` is the actual UUID of the connection under consideration. in keeping
 with both our uniform names best-practices and pusher best-practices.
 
-
-The columns in the JSON file will initially be a subset of our standard columns: 
+The columns in the JSON file will initially be a subset of our standard columns:
 
 - `client.Geo.*`
 - `server.Geo.*`
