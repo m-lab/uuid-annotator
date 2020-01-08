@@ -1,6 +1,7 @@
 package ipannotator
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -13,6 +14,11 @@ import (
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/zipfile"
+)
+
+var (
+	// ErrNoAnnotation is for when we could not annotate an IP address for some reason.
+	ErrNoAnnotation = errors.New("Could not annotate IP address")
 )
 
 // ReloadingAnnotator is just a regular annotator with a Reload method.
@@ -73,11 +79,8 @@ func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 
 	// Return the first error (if any).
 	for _, e := range errs {
-		log.Println("Annotation error for", *ID, e)
-	}
-	for _, e := range errs {
 		if e != nil {
-			return e
+			return fmt.Errorf("Could not annotate ip (%s): %w", e.Error(), ErrNoAnnotation)
 		}
 	}
 	return nil
