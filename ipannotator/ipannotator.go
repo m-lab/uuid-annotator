@@ -12,6 +12,7 @@ import (
 	"github.com/m-lab/annotation-service/geolite2v2"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
+	"github.com/m-lab/uuid-annotator/zipfile"
 )
 
 // ReloadingAnnotator is just a regular annotator with a Reload method.
@@ -20,16 +21,12 @@ type ReloadingAnnotator interface {
 	Reload()
 }
 
-type knownAnnotators struct {
-	geo, v4asn, v6asn api.Annotator
-}
-
 // ipannotator is the central struct for this module.
 type ipannotator struct {
-	mut          sync.RWMutex
-	bucket, file string
-	localAddrs   []net.Addr
-	annotators   knownAnnotators
+	mut               sync.RWMutex
+	localIPs          []net.IP
+	backingDataSource zipfile.Provider
+	maxmind           *geolite2v2.GeoDataset
 }
 
 // direction gives us an enum to keep track of which end of the connection is
@@ -49,7 +46,7 @@ func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 	defer ipa.mut.RUnlock()
 
 	dir := unknown
-	for _, local := range ipa.localAddrs {
+	for _, local := range ipa.localIPs {
 		if ID.SrcIP == local.String() {
 			dir = s2c
 		}
@@ -71,10 +68,13 @@ func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 	}
 
 	var errs []error
-	errs = append(errs, ipa.annotators.geo.Annotate(ID.SrcIP, src))
-	errs = append(errs, ipa.annotators.geo.Annotate(ID.DstIP, dst))
+	errs = append(errs, ipa.maxmind.Annotate(ID.SrcIP, src))
+	errs = append(errs, ipa.maxmind.Annotate(ID.DstIP, dst))
 
 	// Return the first error (if any).
+	for _, e := range errs {
+		log.Println("Annotation error for", *ID, e)
+	}
 	for _, e := range errs {
 		if e != nil {
 			return e
@@ -87,38 +87,36 @@ func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 // the data in GCS is newer than the local data, and, if it is, then download
 // and load that new data into memory and then replace it in the annotator.
 func (ipa *ipannotator) Reload() {
-	// TODO: check cached status of the current dataset instead of unconditionally reloading.
-	newAnnotators, err := ipa.load()
+	newMM, err := ipa.load()
 	if err != nil {
 		log.Println("Could not reload dataset:", err)
 		return
 	}
-	// Don't acquire the lock until after we have done all network IO
+	// Don't acquire the lock until after the data is in RAM.
 	ipa.mut.Lock()
 	defer ipa.mut.Unlock()
-	ipa.annotators = newAnnotators
+	ipa.maxmind = newMM
 }
 
-// load unconditionally loads the annotator datasets from GCS.
-func (ipa *ipannotator) load() (knownAnnotators, error) {
-	ka := knownAnnotators{}
-	var err error
-	ka.geo, err = geolite2v2.LoadG2Dataset(ipa.file, ipa.bucket)
-	// TODO: also load ASN datasets
-	return ka, err
+// load unconditionally loads datasets and returns them.
+func (ipa *ipannotator) load() (*geolite2v2.GeoDataset, error) {
+	z, err := ipa.backingDataSource.Get()
+	if err != nil {
+		return nil, err
+	}
+	return geolite2v2.DatasetFromZip(z)
 }
 
 // New makes a new Annotator that uses IP addresses to generate geolocation and
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
-func New(bucket, file string, localAddrs []net.Addr) ReloadingAnnotator {
+func New(geo zipfile.Provider, localIPs []net.IP) ReloadingAnnotator {
 	ipa := &ipannotator{
-		bucket:     bucket,
-		file:       file,
-		localAddrs: localAddrs,
+		backingDataSource: geo,
+		localIPs:          localIPs,
 	}
 	var err error
-	ipa.annotators, err = ipa.load()
+	ipa.maxmind, err = ipa.load()
 	rtx.Must(err, "Could not load annotation db")
 	return ipa
 }
