@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/m-lab/uuid-annotator/zipfile"
+
 	"github.com/m-lab/go/memoryless"
 	"github.com/m-lab/go/warnonerror"
 
@@ -28,7 +30,10 @@ var (
 	reloadTime      = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax       = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
 
+	// Context, cancellation, and function indirection all in support of
+	// testing.
 	mainCtx, mainCancel = context.WithCancel(context.Background())
+	zipfileFromGCS      = zipfile.FromGCS
 )
 
 func main() {
@@ -47,8 +52,12 @@ func main() {
 
 	// Set up IP annotation, first by loading the initial config.
 	localAddrs, err := net.InterfaceAddrs()
+	localIPs := []net.IP{}
+	for _, addr := range localAddrs {
+		localIPs = append(localIPs, net.ParseIP(addr.String()))
+	}
 	rtx.Must(err, "Could not read local addresses")
-	ipa := ipannotator.New(*bucket, *filename, localAddrs)
+	ipa := ipannotator.New(zipfileFromGCS(*bucket, *filename), localIPs)
 
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)

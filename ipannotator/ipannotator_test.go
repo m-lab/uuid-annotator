@@ -17,7 +17,7 @@ func TestIPAnnotationS2C(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	fp := zipfile.FromFile("testdata/GeoLite2City.zip")
+	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
 	ipa := New(fp, localaddrs)
 
 	// Try to annotate a S2C connection.
@@ -44,7 +44,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	fp := zipfile.FromFile("testdata/GeoLite2City.zip")
+	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
 	ipa := New(fp, localaddrs)
 
 	// Try to annotate a C2S connection.
@@ -71,7 +71,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 
 func TestIPAnnotationUknownDirection(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	fp := zipfile.FromFile("testdata/GeoLite2City.zip")
+	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
 	ipa := New(fp, localaddrs)
 
 	// Try to annotate a connection with no local IP.
@@ -92,7 +92,7 @@ func TestIPAnnotationUknownDirection(t *testing.T) {
 
 func TestIPAnnotationUknownIP(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	fp := zipfile.FromFile("testdata/GeoLite2City.zip")
+	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
 	ipa := New(fp, localaddrs)
 
 	// Try to annotate a connection with no local IP.
@@ -106,7 +106,7 @@ func TestIPAnnotationUknownIP(t *testing.T) {
 
 	ann := &annotator.Annotations{}
 	err := ipa.Annotate(conn, ann)
-	if !errors.Is(err, ErrNoAnnotation) {
+	if !errors.Is(err, annotator.ErrNoAnnotation) {
 		t.Error("Should have had an ErrNoAnnotation error due to IP missing from our dataset, but got", err)
 	}
 }
@@ -125,7 +125,7 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 	ipa.Reload() // No crash == success.
 
 	// Now change the backing source, and the next Reload should load the actual data.
-	ipa.backingDataSource = zipfile.FromFile("testdata/GeoLite2City.zip")
+	ipa.backingDataSource = zipfile.FromFile("../testdata/GeoLite2City.zip")
 	ipa.Reload()
 
 	// Annotations should now succeed...
