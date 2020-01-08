@@ -59,7 +59,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 	ann := &annotator.Annotations{}
 	rtx.Must(ipa.Annotate(conn, ann), "Could not annotate connection")
 
-	// Client and server should be the same, no matter the order of dst and src.
+	// Client and Server should be the same, no matter the order of dst and src.
 	// Latitudes gotten out of the testdata by hand.
 	if math.Abs(ann.Server.Geo.Latitude - -37.7) > .01 {
 		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", -37.7)
@@ -124,6 +124,7 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 	// load errors should not cause Reload to crash.
 	ipa.Reload() // No crash == success.
 
+	// Now change the backing source, and the next Reload should load the actual data.
 	ipa.backingDataSource = zipfile.FromFile("testdata/GeoLite2City.zip")
 	ipa.Reload()
 
