@@ -6,7 +6,6 @@ WORKDIR /go/src/github.com/m-lab/uuid-annotator
 RUN go get -v \
       -ldflags "-X github.com/m-lab/go/prometheusx.GitShortCommit=$(git log -1 --format=%h)" \
       .
-RUN chmod a+rx /go/bin/uuid-annotator
 
 # Put it in its own image.
 FROM alpine

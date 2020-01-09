@@ -40,6 +40,6 @@ func TestMainSmokeTest(t *testing.T) {
 		mainCancel()
 	}()
 
-	// Run main. Full coverage and no crash == success!
+	// Run main. Full coverage, no crash, and return == success!
 	main()
 }

@@ -35,9 +35,9 @@ type ipannotator struct {
 type direction int
 
 const (
-	s2c direction = iota
+	unknown direction = iota
+	s2c
 	c2s
-	unknown
 )
 
 // Annotate puts into geolocation data and ASN data into the passed-in annotations map.
