@@ -24,7 +24,6 @@ import (
 var (
 	datadir         = flag.String("datadir", ".", "The directory to put the data in")
 	maxmindurl      = flag.String("url", "", "The URL for the zipfile containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
-	filename        = flag.String("filename", "", "The GCS file containing MaxMing GeoIP metadata (in the bucket).")
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
 	// Reloading relatively frequently should be fine as long as (a) download
