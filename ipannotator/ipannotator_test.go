@@ -1,9 +1,11 @@
 package ipannotator
 
 import (
+	"archive/zip"
 	"errors"
 	"math"
 	"net"
+	"net/url"
 	"testing"
 
 	"github.com/m-lab/go/rtx"
@@ -13,12 +15,21 @@ import (
 	"github.com/m-lab/uuid-annotator/zipfile"
 )
 
+var localZipfile zipfile.Provider
+
+func init() {
+	var err error
+	u, err := url.Parse("file:../testdata/GeoLite2City.zip")
+	rtx.Must(err, "Could not parse URL")
+	localZipfile, err = zipfile.FromURL(u)
+	rtx.Must(err, "Could not create zipfile.Provider")
+}
+
 func TestIPAnnotationS2C(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
-	ipa := New(fp, localaddrs)
+	ipa := New(localZipfile, localaddrs)
 
 	// Try to annotate a S2C connection.
 	conn := &inetdiag.SockID{
@@ -44,8 +55,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
-	ipa := New(fp, localaddrs)
+	ipa := New(localZipfile, localaddrs)
 
 	// Try to annotate a C2S connection.
 	conn := &inetdiag.SockID{
@@ -71,8 +81,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 
 func TestIPAnnotationUknownDirection(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
-	ipa := New(fp, localaddrs)
+	ipa := New(localZipfile, localaddrs)
 
 	// Try to annotate a connection with no local IP.
 	conn := &inetdiag.SockID{
@@ -92,8 +101,7 @@ func TestIPAnnotationUknownDirection(t *testing.T) {
 
 func TestIPAnnotationUknownIP(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	fp := zipfile.FromFile("../testdata/GeoLite2City.zip")
-	ipa := New(fp, localaddrs)
+	ipa := New(localZipfile, localaddrs)
 
 	// Try to annotate a connection with no local IP.
 	conn := &inetdiag.SockID{
@@ -111,9 +119,15 @@ func TestIPAnnotationUknownIP(t *testing.T) {
 	}
 }
 
+type badProvider struct{}
+
+func (badProvider) Get() (*zip.Reader, error) {
+	return nil, errors.New("Error for testing")
+}
+
 func TestIPAnnotationLoadErrors(t *testing.T) {
 	ipa := ipannotator{
-		backingDataSource: zipfile.FromFile("/this/file/does/not/exist"),
+		backingDataSource: badProvider{},
 		localIPs:          []net.IP{net.ParseIP("1.0.0.1")},
 	}
 	_, err := ipa.load()
@@ -125,7 +139,7 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 	ipa.Reload() // No crash == success.
 
 	// Now change the backing source, and the next Reload should load the actual data.
-	ipa.backingDataSource = zipfile.FromFile("../testdata/GeoLite2City.zip")
+	ipa.backingDataSource = localZipfile
 	ipa.Reload()
 
 	// Annotations should now succeed...

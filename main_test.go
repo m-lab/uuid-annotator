@@ -10,24 +10,18 @@ import (
 	"github.com/m-lab/tcp-info/eventsocket"
 
 	"github.com/m-lab/go/rtx"
-	"github.com/m-lab/uuid-annotator/zipfile"
 )
 
 func TestMainSmokeTest(t *testing.T) {
-	mainCtx, mainCancel = context.WithCancel(context.Background())
-	zipfileFromGCS = func(_, _ string) zipfile.Provider {
-		return zipfile.FromFile("testdata/GeoLite2City.zip")
-	}
-	defer func() {
-		zipfileFromGCS = zipfile.FromGCS
-	}()
-
+	// Set up the local HD.
 	dir, err := ioutil.TempDir("", "TestMain")
 	rtx.Must(err, "Could not create tempdir")
 	defer os.RemoveAll(dir)
 
-	socketfilename := dir + "/eventsocket.sock"
-	*eventsocket.Filename = socketfilename
+	// Set up global variables.
+	mainCtx, mainCancel = context.WithCancel(context.Background())
+	*eventsocket.Filename = dir + "/eventsocket.sock"
+	*maxmindurl = "file:./testdata/GeoLite2City.zip"
 
 	// Now start up a fake eventsocket.
 	srv := eventsocket.New(*eventsocket.Filename)

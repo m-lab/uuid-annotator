@@ -4,16 +4,16 @@ import (
 	"context"
 	"flag"
 	"net"
+	"net/url"
 	"sync"
 	"time"
-
-	"github.com/m-lab/uuid-annotator/zipfile"
 
 	"github.com/m-lab/go/memoryless"
 	"github.com/m-lab/go/warnonerror"
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/ipannotator"
+	"github.com/m-lab/uuid-annotator/zipfile"
 
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
@@ -23,8 +23,7 @@ import (
 
 var (
 	datadir         = flag.String("datadir", ".", "The directory to put the data in")
-	bucket          = flag.String("bucket", "", "The GCS bucket containing MaxMind IP metadata.")
-	filename        = flag.String("filename", "", "The GCS file containing MaxMing GeoIP metadata (in the bucket).")
+	maxmindurl      = flag.String("url", "", "The URL for the zipfile containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
 	// Reloading relatively frequently should be fine as long as (a) download
@@ -36,10 +35,8 @@ var (
 	reloadTime = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax  = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
 
-	// Context, cancellation, and function indirection all in support of
-	// testing.
+	// Context and cancellation in support of testing.
 	mainCtx, mainCancel = context.WithCancel(context.Background())
-	zipfileFromGCS      = zipfile.FromGCS
 )
 
 func main() {
@@ -63,7 +60,11 @@ func main() {
 		localIPs = append(localIPs, net.ParseIP(addr.String()))
 	}
 	rtx.Must(err, "Could not read local addresses")
-	ipa := ipannotator.New(zipfileFromGCS(*bucket, *filename), localIPs)
+	u, err := url.Parse(*maxmindurl)
+	rtx.Must(err, "Could not parse URL")
+	p, err := zipfile.FromURL(u)
+	rtx.Must(err, "Could not get maxmind data from url")
+	ipa := ipannotator.New(p, localIPs)
 
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
