@@ -53,7 +53,7 @@ func TestFromURL(t *testing.T) {
 				}
 				return
 			}
-			_, err = provider.Get()
+			_, err = provider.Get(context.Background())
 			if (err != nil) != tt.wantGetErr {
 				t.Errorf("Get() error = %v, wantGetErr %v", err, tt.wantGetErr)
 			}

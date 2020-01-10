@@ -24,7 +24,7 @@ type Provider interface {
 	// Get returns a zip.Reader pointer based on the latest copy of the data the
 	// provider refers to. It may be called multiple times, and caching is left
 	// up to the individual Provider implementation.
-	Get() (*zip.Reader, error)
+	Get(ctx context.Context) (*zip.Reader, error)
 }
 
 // gcsProvider gets zip files from Google Cloud Storage.
@@ -33,9 +33,16 @@ type gcsProvider struct {
 	client           stiface.Client
 }
 
-func (g *gcsProvider) Get() (*zip.Reader, error) {
-
-	return nil, errors.New("unimplemented")
+func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
+	r, err := g.client.Bucket(g.bucket).Object(g.filename).NewReader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	data, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return zip.NewReader(bytes.NewReader(data), int64(len(data)))
 }
 
 // fileProvider gets zipfiles from the local disk.
@@ -43,7 +50,7 @@ type fileProvider struct {
 	filename string
 }
 
-func (f *fileProvider) Get() (*zip.Reader, error) {
+func (f *fileProvider) Get(ctx context.Context) (*zip.Reader, error) {
 	b, err := ioutil.ReadFile(f.filename)
 	if err != nil {
 		return nil, err

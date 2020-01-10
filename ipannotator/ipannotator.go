@@ -1,6 +1,7 @@
 package ipannotator
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -18,7 +19,7 @@ import (
 // ReloadingAnnotator is just a regular annotator with a Reload method.
 type ReloadingAnnotator interface {
 	annotator.Annotator
-	Reload()
+	Reload(context.Context)
 }
 
 // ipannotator is the central struct for this module.
@@ -83,8 +84,8 @@ func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 // Reload is intended to be regularly called in a loop. It should check whether
 // the data in GCS is newer than the local data, and, if it is, then download
 // and load that new data into memory and then replace it in the annotator.
-func (ipa *ipannotator) Reload() {
-	newMM, err := ipa.load()
+func (ipa *ipannotator) Reload(ctx context.Context) {
+	newMM, err := ipa.load(ctx)
 	if err != nil {
 		log.Println("Could not reload dataset:", err)
 		return
@@ -96,8 +97,8 @@ func (ipa *ipannotator) Reload() {
 }
 
 // load unconditionally loads datasets and returns them.
-func (ipa *ipannotator) load() (*geolite2v2.GeoDataset, error) {
-	z, err := ipa.backingDataSource.Get()
+func (ipa *ipannotator) load(ctx context.Context) (*geolite2v2.GeoDataset, error) {
+	z, err := ipa.backingDataSource.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +108,13 @@ func (ipa *ipannotator) load() (*geolite2v2.GeoDataset, error) {
 // New makes a new Annotator that uses IP addresses to generate geolocation and
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
-func New(geo zipfile.Provider, localIPs []net.IP) ReloadingAnnotator {
+func New(ctx context.Context, geo zipfile.Provider, localIPs []net.IP) ReloadingAnnotator {
 	ipa := &ipannotator{
 		backingDataSource: geo,
 		localIPs:          localIPs,
 	}
 	var err error
-	ipa.maxmind, err = ipa.load()
+	ipa.maxmind, err = ipa.load(ctx)
 	rtx.Must(err, "Could not load annotation db")
 	return ipa
 }

@@ -64,7 +64,7 @@ func main() {
 	rtx.Must(err, "Could not parse URL")
 	p, err := zipfile.FromURL(mainCtx, u)
 	rtx.Must(err, "Could not get maxmind data from url")
-	ipa := ipannotator.New(p, localIPs)
+	ipa := ipannotator.New(mainCtx, p, localIPs)
 
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
@@ -74,7 +74,11 @@ func main() {
 			Max:      *reloadMax,
 			Expected: *reloadTime,
 		}
-		memoryless.Run(mainCtx, ipa.Reload, reloadConfig)
+		tick, err := memoryless.NewTicker(mainCtx, reloadConfig)
+		rtx.Must(err, "Could not create ticker for reloading")
+		for range tick.C {
+			ipa.Reload(mainCtx)
+		}
 		wg.Done()
 	}()
 
