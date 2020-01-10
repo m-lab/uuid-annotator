@@ -2,6 +2,7 @@ package ipannotator
 
 import (
 	"archive/zip"
+	"context"
 	"errors"
 	"math"
 	"net"
@@ -21,7 +22,7 @@ func init() {
 	var err error
 	u, err := url.Parse("file:../testdata/GeoLite2City.zip")
 	rtx.Must(err, "Could not parse URL")
-	localZipfile, err = zipfile.FromURL(u)
+	localZipfile, err = zipfile.FromURL(context.Background(), u)
 	rtx.Must(err, "Could not create zipfile.Provider")
 }
 

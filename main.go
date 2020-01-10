@@ -62,7 +62,7 @@ func main() {
 	rtx.Must(err, "Could not read local addresses")
 	u, err := url.Parse(*maxmindurl)
 	rtx.Must(err, "Could not parse URL")
-	p, err := zipfile.FromURL(u)
+	p, err := zipfile.FromURL(mainCtx, u)
 	rtx.Must(err, "Could not get maxmind data from url")
 	ipa := ipannotator.New(p, localIPs)
 

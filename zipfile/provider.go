@@ -3,9 +3,14 @@ package zipfile
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"errors"
 	"io/ioutil"
 	"net/url"
+
+	"github.com/GoogleCloudPlatform/google-cloud-go-testing/storage/stiface"
+
+	"cloud.google.com/go/storage"
 )
 
 // Errors that might be returned outside the package.
@@ -25,9 +30,11 @@ type Provider interface {
 // gcsProvider gets zip files from Google Cloud Storage.
 type gcsProvider struct {
 	bucket, filename string
+	client           stiface.Client
 }
 
 func (g *gcsProvider) Get() (*zip.Reader, error) {
+
 	return nil, errors.New("unimplemented")
 }
 
@@ -54,13 +61,15 @@ func (f *fileProvider) Get() (*zip.Reader, error) {
 // should implement an https case in the below handler. M-Lab doesn't need that
 // case because we cache MaxMind's data to reduce load on their servers and to
 // eliminate a runtime dependency on a third party service.
-func FromURL(u *url.URL) (Provider, error) {
+func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 	switch u.Scheme {
 	case "gs":
+		client, err := storage.NewClient(ctx)
 		return &gcsProvider{
+			client:   stiface.AdaptClient(client),
 			bucket:   u.Host,
 			filename: u.Path,
-		}, nil
+		}, err
 	case "file":
 		return &fileProvider{
 			filename: u.Opaque,
