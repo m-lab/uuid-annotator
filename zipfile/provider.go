@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"io/ioutil"
 	"net/url"
 
@@ -31,18 +32,32 @@ type Provider interface {
 type gcsProvider struct {
 	bucket, filename string
 	client           stiface.Client
+	md5              []byte
+	cachedReader     *zip.Reader
 }
 
 func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
-	r, err := g.client.Bucket(g.bucket).Object(g.filename).NewReader(ctx)
+	o := g.client.Bucket(g.bucket).Object(g.filename)
+	oa, err := o.Attrs(ctx)
 	if err != nil {
 		return nil, err
 	}
-	data, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
+	if g.cachedReader == nil || g.md5 == nil || !bytes.Equal(g.md5, oa.MD5) {
+		// Reload data only if the object changed or the data was never loaded in the first place.
+		var r io.Reader
+		r, err = o.NewReader(ctx)
+		if err != nil {
+			return nil, err
+		}
+		var data []byte
+		data, err = ioutil.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+		g.cachedReader, err = zip.NewReader(bytes.NewReader(data), int64(len(data)))
+		g.md5 = oa.MD5
 	}
-	return zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	return g.cachedReader, err
 }
 
 // fileProvider gets zipfiles from the local disk.
