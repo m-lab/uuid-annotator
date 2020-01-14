@@ -24,4 +24,11 @@ var (
 			Help: "The number of times annotation returned an error",
 		},
 	)
+	GCSFilesLoaded = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "uuid_annotator_gcs_hash_loaded",
+			Help: "The hash of the loaded GCS file",
+		},
+		[]string{"md5"},
+	)
 )

@@ -2,6 +2,7 @@ package ipannotator
 
 import (
 	"archive/zip"
+	"context"
 	"errors"
 	"math"
 	"net"
@@ -21,7 +22,7 @@ func init() {
 	var err error
 	u, err := url.Parse("file:../testdata/GeoLite2City.zip")
 	rtx.Must(err, "Could not parse URL")
-	localZipfile, err = zipfile.FromURL(u)
+	localZipfile, err = zipfile.FromURL(context.Background(), u)
 	rtx.Must(err, "Could not create zipfile.Provider")
 }
 
@@ -29,7 +30,7 @@ func TestIPAnnotationS2C(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	ipa := New(localZipfile, localaddrs)
+	ipa := New(context.Background(), localZipfile, localaddrs)
 
 	// Try to annotate a S2C connection.
 	conn := &inetdiag.SockID{
@@ -55,7 +56,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	ipa := New(localZipfile, localaddrs)
+	ipa := New(context.Background(), localZipfile, localaddrs)
 
 	// Try to annotate a C2S connection.
 	conn := &inetdiag.SockID{
@@ -81,7 +82,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 
 func TestIPAnnotationUknownDirection(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	ipa := New(localZipfile, localaddrs)
+	ipa := New(context.Background(), localZipfile, localaddrs)
 
 	// Try to annotate a connection with no local IP.
 	conn := &inetdiag.SockID{
@@ -101,7 +102,7 @@ func TestIPAnnotationUknownDirection(t *testing.T) {
 
 func TestIPAnnotationUknownIP(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	ipa := New(localZipfile, localaddrs)
+	ipa := New(context.Background(), localZipfile, localaddrs)
 
 	// Try to annotate a connection with no local IP.
 	conn := &inetdiag.SockID{
@@ -121,26 +122,27 @@ func TestIPAnnotationUknownIP(t *testing.T) {
 
 type badProvider struct{}
 
-func (badProvider) Get() (*zip.Reader, error) {
+func (badProvider) Get(_ context.Context) (*zip.Reader, error) {
 	return nil, errors.New("Error for testing")
 }
 
 func TestIPAnnotationLoadErrors(t *testing.T) {
+	ctx := context.Background()
 	ipa := ipannotator{
 		backingDataSource: badProvider{},
 		localIPs:          []net.IP{net.ParseIP("1.0.0.1")},
 	}
-	_, err := ipa.load()
+	_, err := ipa.load(ctx)
 	if err == nil {
 		t.Error("Should have had a non-nil error due to missing file")
 	}
 
 	// load errors should not cause Reload to crash.
-	ipa.Reload() // No crash == success.
+	ipa.Reload(ctx) // No crash == success.
 
 	// Now change the backing source, and the next Reload should load the actual data.
 	ipa.backingDataSource = localZipfile
-	ipa.Reload()
+	ipa.Reload(ctx)
 
 	// Annotations should now succeed...
 	conn := &inetdiag.SockID{

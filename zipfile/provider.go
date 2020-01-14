@@ -3,9 +3,14 @@ package zipfile
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"errors"
 	"io/ioutil"
 	"net/url"
+
+	"cloud.google.com/go/storage"
+	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
+	"github.com/m-lab/uuid-annotator/metrics"
 )
 
 // Errors that might be returned outside the package.
@@ -19,16 +24,46 @@ type Provider interface {
 	// Get returns a zip.Reader pointer based on the latest copy of the data the
 	// provider refers to. It may be called multiple times, and caching is left
 	// up to the individual Provider implementation.
-	Get() (*zip.Reader, error)
+	Get(ctx context.Context) (*zip.Reader, error)
 }
 
 // gcsProvider gets zip files from Google Cloud Storage.
 type gcsProvider struct {
 	bucket, filename string
+	client           stiface.Client
+	md5              []byte
+	cachedReader     *zip.Reader
 }
 
-func (g *gcsProvider) Get() (*zip.Reader, error) {
-	return nil, errors.New("unimplemented")
+func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
+	o := g.client.Bucket(g.bucket).Object(g.filename)
+	oa, err := o.Attrs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if g.cachedReader == nil || g.md5 == nil || !bytes.Equal(g.md5, oa.MD5) {
+		// Reload data only if the object changed or the data was never loaded in the first place.
+		r, err := o.NewReader(ctx)
+		if err != nil {
+			return nil, err
+		}
+		var data []byte
+		data, err = ioutil.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+		if err != nil {
+			return nil, err
+		}
+		g.cachedReader = zr
+		if g.md5 != nil {
+			metrics.GCSFilesLoaded.WithLabelValues(string(g.md5)).Set(0)
+		}
+		g.md5 = oa.MD5
+		metrics.GCSFilesLoaded.WithLabelValues(string(g.md5)).Set(1)
+	}
+	return g.cachedReader, nil
 }
 
 // fileProvider gets zipfiles from the local disk.
@@ -36,7 +71,7 @@ type fileProvider struct {
 	filename string
 }
 
-func (f *fileProvider) Get() (*zip.Reader, error) {
+func (f *fileProvider) Get(ctx context.Context) (*zip.Reader, error) {
 	b, err := ioutil.ReadFile(f.filename)
 	if err != nil {
 		return nil, err
@@ -54,13 +89,15 @@ func (f *fileProvider) Get() (*zip.Reader, error) {
 // should implement an https case in the below handler. M-Lab doesn't need that
 // case because we cache MaxMind's data to reduce load on their servers and to
 // eliminate a runtime dependency on a third party service.
-func FromURL(u *url.URL) (Provider, error) {
+func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 	switch u.Scheme {
 	case "gs":
+		client, err := storage.NewClient(ctx)
 		return &gcsProvider{
+			client:   stiface.AdaptClient(client),
 			bucket:   u.Host,
 			filename: u.Path,
-		}, nil
+		}, err
 	case "file":
 		return &fileProvider{
 			filename: u.Opaque,
