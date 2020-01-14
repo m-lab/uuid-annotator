@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
+	"github.com/m-lab/uuid-annotator/metrics"
 )
 
 // Errors that might be returned outside the package.
@@ -56,7 +57,11 @@ func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
 			return nil, err
 		}
 		g.cachedReader = zr
+		if g.md5 != nil {
+			metrics.GCSFilesLoaded.WithLabelValues(string(g.md5)).Set(0)
+		}
 		g.md5 = oa.MD5
+		metrics.GCSFilesLoaded.WithLabelValues(string(g.md5)).Set(1)
 	}
 	return g.cachedReader, nil
 }

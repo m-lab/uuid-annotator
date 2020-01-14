@@ -144,11 +144,14 @@ type fakeClient struct {
 
 func (fc *fakeClient) Bucket(name string) stiface.BucketHandle { return fc.bh }
 
+func readerForZipfileOnDisk() io.Reader {
+	r, err := os.Open("../testdata/GeoLite2City.zip")
+	rtx.Must(err, "Could not open test data")
+	return r
+}
+
 func Test_gcsProvider_Get(t *testing.T) {
 	zipReaderForCaching := &zip.Reader{}
-
-	readerForZipfileOnDisk, err := os.Open("../testdata/GeoLite2City.zip")
-	rtx.Must(err, "Could not open test data")
 
 	readerForNonZipfileOnDisk, err := os.Open("provider_test.go")
 	rtx.Must(err, "Could not open this test file")
@@ -257,11 +260,31 @@ func Test_gcsProvider_Get(t *testing.T) {
 								MD5: []byte("a hash"),
 							},
 							reader: &stifaceReaderThatsJustAnIOReader{
-								r: readerForZipfileOnDisk,
+								r: readerForZipfileOnDisk(),
 							},
 						},
 					},
 				},
+			},
+			wantNonNil: true,
+		},
+		{
+			name: "Read successfully from fake GCS with cached data",
+			fields: fields{
+				client: &fakeClient{
+					bh: &fakeBucketHandle{
+						oh: &fakeObjectHandle{
+							attrs: &storage.ObjectAttrs{
+								MD5: []byte("a hash"),
+							},
+							reader: &stifaceReaderThatsJustAnIOReader{
+								r: readerForZipfileOnDisk(),
+							},
+						},
+					},
+				},
+				cachedReader: zipReaderForCaching,
+				md5:          []byte("a different hash"),
 			},
 			wantNonNil: true,
 		},
