@@ -5,13 +5,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"io"
 	"io/ioutil"
 	"net/url"
 
-	"github.com/GoogleCloudPlatform/google-cloud-go-testing/storage/stiface"
-
 	"cloud.google.com/go/storage"
+	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
 )
 
 // Errors that might be returned outside the package.
@@ -44,8 +42,7 @@ func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
 	}
 	if g.cachedReader == nil || g.md5 == nil || !bytes.Equal(g.md5, oa.MD5) {
 		// Reload data only if the object changed or the data was never loaded in the first place.
-		var r io.Reader
-		r, err = o.NewReader(ctx)
+		r, err := o.NewReader(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -54,10 +51,14 @@ func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
 		if err != nil {
 			return nil, err
 		}
-		g.cachedReader, err = zip.NewReader(bytes.NewReader(data), int64(len(data)))
+		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+		if err != nil {
+			return nil, err
+		}
+		g.cachedReader = zr
 		g.md5 = oa.MD5
 	}
-	return g.cachedReader, err
+	return g.cachedReader, nil
 }
 
 // fileProvider gets zipfiles from the local disk.

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/storage"
-	"github.com/GoogleCloudPlatform/google-cloud-go-testing/storage/stiface"
+	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
 	"github.com/m-lab/go/rtx"
 )
 
@@ -150,6 +150,9 @@ func Test_gcsProvider_Get(t *testing.T) {
 	readerForZipfileOnDisk, err := os.Open("../testdata/GeoLite2City.zip")
 	rtx.Must(err, "Could not open test data")
 
+	readerForNonZipfileOnDisk, err := os.Open("provider_test.go")
+	rtx.Must(err, "Could not open this test file")
+
 	type fields struct {
 		bucket       string
 		filename     string
@@ -157,15 +160,11 @@ func Test_gcsProvider_Get(t *testing.T) {
 		md5          []byte
 		cachedReader *zip.Reader
 	}
-	type args struct {
-		ctx context.Context
-	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *zip.Reader
-		wantErr bool
+		name       string
+		fields     fields
+		wantNonNil bool
+		wantErr    bool
 	}{
 		{
 			name: "Can't get Attrs",
@@ -196,7 +195,7 @@ func Test_gcsProvider_Get(t *testing.T) {
 				cachedReader: zipReaderForCaching,
 				md5:          []byte("a hash"),
 			},
-			want: zipReaderForCaching,
+			wantNonNil: true,
 		},
 		{
 			name: "NewReader error is handled",
@@ -231,6 +230,24 @@ func Test_gcsProvider_Get(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "Read from fake GCS but it's not a zipfile",
+			fields: fields{
+				client: &fakeClient{
+					bh: &fakeBucketHandle{
+						oh: &fakeObjectHandle{
+							attrs: &storage.ObjectAttrs{
+								MD5: []byte("a hash"),
+							},
+							reader: &stifaceReaderThatsJustAnIOReader{
+								r: readerForNonZipfileOnDisk,
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "Read successfully from fake GCS",
 			fields: fields{
 				client: &fakeClient{
@@ -246,7 +263,7 @@ func Test_gcsProvider_Get(t *testing.T) {
 					},
 				},
 			},
-			want: &zip.Reader{}, // non-nil want
+			wantNonNil: true,
 		},
 	}
 	for _, tt := range tests {
@@ -258,13 +275,13 @@ func Test_gcsProvider_Get(t *testing.T) {
 				md5:          tt.fields.md5,
 				cachedReader: tt.fields.cachedReader,
 			}
-			got, err := g.Get(tt.args.ctx)
+			got, err := g.Get(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("gcsProvider.Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (tt.want == nil) != (got == nil) {
-				t.Errorf("want and got should both be nil or both be non-nil. gcsProvider.Get() = %v, want %v", got, tt.want)
+			if tt.wantNonNil != (got != nil) {
+				t.Errorf("gcsProvider.Get() = %v, wantNonNil=%v", got, tt.wantNonNil)
 			}
 		})
 	}
