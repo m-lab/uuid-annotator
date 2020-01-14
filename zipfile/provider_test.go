@@ -1,9 +1,12 @@
 package zipfile
 
 import (
+	"archive/zip"
 	"context"
 	"errors"
+	"io"
 	"net/url"
+	"os"
 	"testing"
 
 	"cloud.google.com/go/storage"
@@ -92,14 +95,37 @@ func TestFromURL(t *testing.T) {
 	}
 }
 
+type stifaceReaderThatsJustAnIOReader struct {
+	stiface.Reader
+	r io.Reader
+}
+
+func (s *stifaceReaderThatsJustAnIOReader) Read(p []byte) (int, error) {
+	return s.r.Read(p)
+}
+
+type readerWhereReadFails struct {
+	stiface.Reader
+}
+
+func (*readerWhereReadFails) Read(p []byte) (int, error) {
+	return 0, errors.New("This reader fails for test purposes")
+}
+
 type fakeObjectHandle struct {
 	stiface.ObjectHandle
-	err   error
-	attrs *storage.ObjectAttrs
+	attrErr   error
+	attrs     *storage.ObjectAttrs
+	readerErr error
+	reader    stiface.Reader
 }
 
 func (foh *fakeObjectHandle) Attrs(ctx context.Context) (*storage.ObjectAttrs, error) {
-	return foh.attrs, foh.err
+	return foh.attrs, foh.attrErr
+}
+
+func (foh *fakeObjectHandle) NewReader(ctx context.Context) (stiface.Reader, error) {
+	return foh.reader, foh.readerErr
 }
 
 type fakeBucketHandle struct {
@@ -118,19 +144,127 @@ type fakeClient struct {
 
 func (fc *fakeClient) Bucket(name string) stiface.BucketHandle { return fc.bh }
 
-func TestGCSGet(t *testing.T) {
-	client := &fakeClient{
-		bh: &fakeBucketHandle{
-			oh: nil,
+func Test_gcsProvider_Get(t *testing.T) {
+	zipReaderForCaching := &zip.Reader{}
+
+	readerForZipfileOnDisk, err := os.Open("../testdata/GeoLite2City.zip")
+	rtx.Must(err, "Could not open test data")
+
+	type fields struct {
+		bucket       string
+		filename     string
+		client       stiface.Client
+		md5          []byte
+		cachedReader *zip.Reader
+	}
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *zip.Reader
+		wantErr bool
+	}{
+		{
+			name: "Can't get Attrs",
+			fields: fields{
+				client: &fakeClient{
+					bh: &fakeBucketHandle{
+						oh: &fakeObjectHandle{
+							attrErr: errors.New("Error for testing"),
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Test caching (hashes should match)",
+			fields: fields{
+				client: &fakeClient{
+					bh: &fakeBucketHandle{
+						oh: &fakeObjectHandle{
+							attrs: &storage.ObjectAttrs{
+								MD5: []byte("a hash"),
+							},
+						},
+					},
+				},
+				cachedReader: zipReaderForCaching,
+				md5:          []byte("a hash"),
+			},
+			want: zipReaderForCaching,
+		},
+		{
+			name: "NewReader error is handled",
+			fields: fields{
+				client: &fakeClient{
+					bh: &fakeBucketHandle{
+						oh: &fakeObjectHandle{
+							attrs: &storage.ObjectAttrs{
+								MD5: []byte("a hash"),
+							},
+							readerErr: errors.New("Can't make reader"),
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "ReadAll error is handled",
+			fields: fields{
+				client: &fakeClient{
+					bh: &fakeBucketHandle{
+						oh: &fakeObjectHandle{
+							attrs: &storage.ObjectAttrs{
+								MD5: []byte("a hash"),
+							},
+							reader: &readerWhereReadFails{},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Read successfully from fake GCS",
+			fields: fields{
+				client: &fakeClient{
+					bh: &fakeBucketHandle{
+						oh: &fakeObjectHandle{
+							attrs: &storage.ObjectAttrs{
+								MD5: []byte("a hash"),
+							},
+							reader: &stifaceReaderThatsJustAnIOReader{
+								r: readerForZipfileOnDisk,
+							},
+						},
+					},
+				},
+			},
+			want: &zip.Reader{}, // non-nil want
 		},
 	}
-
-	gcp := gcsProvider{
-		bucket:   "testb",
-		filename: "testf.zip",
-		client:   client,
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := &gcsProvider{
+				bucket:       tt.fields.bucket,
+				filename:     tt.fields.filename,
+				client:       tt.fields.client,
+				md5:          tt.fields.md5,
+				cachedReader: tt.fields.cachedReader,
+			}
+			got, err := g.Get(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("gcsProvider.Get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if (tt.want == nil) != (got == nil) {
+				t.Errorf("want and got should both be nil or both be non-nil. gcsProvider.Get() = %v, want %v", got, tt.want)
+			}
+		})
 	}
-
-	_, err := gcp.Get(context.Background())
-	rtx.Must(err, "Could not get")
 }
