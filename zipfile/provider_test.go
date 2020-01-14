@@ -181,7 +181,7 @@ func Test_gcsProvider_Get(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Test caching (hashes should match)",
+			name: "Test caching (hashes should match and reader error should not be returned)",
 			fields: fields{
 				client: &fakeClient{
 					bh: &fakeBucketHandle{
@@ -189,6 +189,7 @@ func Test_gcsProvider_Get(t *testing.T) {
 							attrs: &storage.ObjectAttrs{
 								MD5: []byte("a hash"),
 							},
+							readerErr: errors.New("This should not happen"),
 						},
 					},
 				},
