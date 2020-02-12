@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/memoryless"
 	"github.com/m-lab/go/warnonerror"
 
@@ -40,6 +41,9 @@ var (
 )
 
 func main() {
+	flag.Parse()
+	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not get args from environment variables")
+
 	defer mainCancel()
 	// A waitgroup that waits for every component goroutine to complete before main exits.
 	wg := sync.WaitGroup{}
