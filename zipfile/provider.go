@@ -95,10 +95,7 @@ func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 	switch u.Scheme {
 	case "gs":
 		client, err := storage.NewClient(ctx)
-		filename := u.Path
-		if strings.HasPrefix(filename, "/") {
-			filename = filename[1:]
-		}
+		filename := strings.TrimPrefix(u.Path, "/")
 		if len(filename) == 0 {
 			return nil, errors.New("Bad GS url, no filename detected")
 		}
