@@ -95,6 +95,65 @@ func TestFromURL(t *testing.T) {
 	}
 }
 
+func TestFromGSURL(t *testing.T) {
+	tests := []struct {
+		name    string
+		url     string
+		want    *gcsProvider
+		wantErr bool
+	}{
+		// Some of these endpoints do not exist, but since we never call .Get(),
+		// the provider can still be created successfully.
+		{
+			name: "Good file",
+			url:  "gs://downloader-mlab-sandbox/Maxmind/current/GeoLite2-City-CSV.zip",
+			want: &gcsProvider{
+				bucket:   "downloader-mlab-sandbox",
+				filename: "Maxmind/current/GeoLite2-City-CSV.zip",
+			},
+		},
+		{
+			name: "GCS nonexistent file",
+			url:  "gs://mlab-nonexistent-bucket/nonexistent-object.zip",
+			want: &gcsProvider{
+				bucket:   "mlab-nonexistent-bucket",
+				filename: "nonexistent-object.zip",
+			},
+		},
+		{
+			name:    "GCS no file",
+			url:     "gs://mlab-nonexistent-bucket/",
+			wantErr: true,
+		},
+		{
+			name:    "GCS no file no slash",
+			url:     "gs://mlab-nonexistent-bucket",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u, err := url.Parse(tt.url)
+			rtx.Must(err, "Could not parse URL")
+			p, err := FromURL(context.Background(), u)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FromURL() error=%v (which should be or wrap ErrUnsupportedURLScheme=%v), wantErr=%v", err, ErrUnsupportedURLScheme, tt.wantErr)
+				return
+			}
+			if err != nil {
+				// Don't verify the output in the error case. The API makes no promises on error cases.
+				return
+			}
+			gcsp := p.(*gcsProvider)
+			if gcsp.bucket != tt.want.bucket || gcsp.filename != tt.want.filename {
+				t.Errorf(
+					"Bucket and filename should be (%q,%q), but are (%q,%q)",
+					tt.want.bucket, tt.want.filename, gcsp.bucket, gcsp.filename)
+			}
+		})
+	}
+}
+
 type stifaceReaderThatsJustAnIOReader struct {
 	stiface.Reader
 	r io.Reader

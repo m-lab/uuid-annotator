@@ -4,9 +4,11 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"encoding/hex"
 	"errors"
 	"io/ioutil"
 	"net/url"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
@@ -58,10 +60,10 @@ func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
 		}
 		g.cachedReader = zr
 		if g.md5 != nil {
-			metrics.GCSFilesLoaded.WithLabelValues(string(g.md5)).Set(0)
+			metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(0)
 		}
 		g.md5 = oa.MD5
-		metrics.GCSFilesLoaded.WithLabelValues(string(g.md5)).Set(1)
+		metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(1)
 	}
 	return g.cachedReader, nil
 }
@@ -93,10 +95,17 @@ func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 	switch u.Scheme {
 	case "gs":
 		client, err := storage.NewClient(ctx)
+		filename := u.Path
+		if strings.HasPrefix(filename, "/") {
+			filename = filename[1:]
+		}
+		if len(filename) == 0 {
+			return nil, errors.New("Bad GS url, no filename detected")
+		}
 		return &gcsProvider{
 			client:   stiface.AdaptClient(client),
 			bucket:   u.Host,
-			filename: u.Path,
+			filename: filename,
 		}, err
 	case "file":
 		return &fileProvider{
