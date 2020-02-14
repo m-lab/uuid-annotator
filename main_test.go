@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"io/ioutil"
+	"net"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/m-lab/tcp-info/eventsocket"
-
 	"github.com/m-lab/go/rtx"
+	"github.com/m-lab/tcp-info/eventsocket"
 )
 
 func TestMainSmokeTest(t *testing.T) {
@@ -36,4 +37,47 @@ func TestMainSmokeTest(t *testing.T) {
 
 	// Run main. Full coverage, no crash, and return == success!
 	main()
+}
+
+func Test_findLocalIPs(t *testing.T) {
+	tests := []struct {
+		name  string
+		local []net.Addr
+		want  []net.IP
+	}{
+		{
+			name: "success",
+			local: []net.Addr{
+				&net.IPNet{
+					IP:   net.ParseIP("127.0.0.1"),
+					Mask: net.CIDRMask(24, 32),
+				},
+				&net.IPNet{
+					IP:   net.ParseIP("2001:1900:2100:2d::75"),
+					Mask: net.CIDRMask(64, 128),
+				},
+			},
+			want: []net.IP{
+				net.ParseIP("127.0.0.1"),
+				net.ParseIP("2001:1900:2100:2d::75"),
+			},
+		},
+		{
+			name: "skip-all-return-empty",
+			local: []net.Addr{
+				&net.UnixAddr{
+					Name: "fake-unix",
+					Net:  "unix",
+				},
+			},
+			want: []net.IP{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := findLocalIPs(tt.local); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("findLocalIPs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
