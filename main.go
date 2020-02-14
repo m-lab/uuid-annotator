@@ -45,6 +45,18 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.LUTC | log.Lshortfile)
 }
 
+func findLocalIPs(localAddrs []net.Addr) []net.IP {
+	localIPs := []net.IP{}
+	for _, addr := range localAddrs {
+		// By default, addr.String() includes the netblock suffix. By casting to
+		// the underlying net.IPNet we can extract just the IP.
+		if a, ok := addr.(*net.IPNet); ok {
+			localIPs = append(localIPs, a.IP)
+		}
+	}
+	return localIPs
+}
+
 func main() {
 	flag.Parse()
 	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not get args from environment variables")
@@ -64,13 +76,8 @@ func main() {
 
 	// Set up IP annotation, first by loading the initial config.
 	localAddrs, err := net.InterfaceAddrs()
-	localIPs := []net.IP{}
-	for _, addr := range localAddrs {
-		// By default, addr.String() includes the netblock suffix. By casting to
-		// the underlying net.IPNet we can extract just the IP.
-		localIPs = append(localIPs, addr.(*net.IPNet).IP)
-	}
 	rtx.Must(err, "Could not read local addresses")
+	localIPs := findLocalIPs(localAddrs)
 	u, err := url.Parse(*maxmindurl)
 	rtx.Must(err, "Could not parse URL")
 	p, err := zipfile.FromURL(mainCtx, u)
