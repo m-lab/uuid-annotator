@@ -69,6 +69,7 @@ func (h *handler) annotateAndSave(j *job) {
 	for _, ann := range h.annotators {
 		err := ann.Annotate(j.id, annotations)
 		if err != nil {
+			log.Println(err)
 			metrics.AnnotationErrors.Inc()
 		}
 	}
