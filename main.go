@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"net"
 	"net/url"
 	"sync"
@@ -40,6 +41,10 @@ var (
 	mainCtx, mainCancel = context.WithCancel(context.Background())
 )
 
+func init() {
+	log.SetFlags(log.LstdFlags | log.LUTC | log.Lshortfile)
+}
+
 func main() {
 	flag.Parse()
 	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not get args from environment variables")
@@ -61,7 +66,9 @@ func main() {
 	localAddrs, err := net.InterfaceAddrs()
 	localIPs := []net.IP{}
 	for _, addr := range localAddrs {
-		localIPs = append(localIPs, net.ParseIP(addr.String()))
+		// By default, addr.String() includes the netblock suffix. By casting to
+		// the underlying net.IPNet we can extract just the IP.
+		localIPs = append(localIPs, addr.(*net.IPNet).IP)
 	}
 	rtx.Must(err, "Could not read local addresses")
 	u, err := url.Parse(*maxmindurl)
