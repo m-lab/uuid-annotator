@@ -20,9 +20,10 @@ var (
 
 // Annotations contains the standard columns we would like to add as annotations for every UUID.
 type Annotations struct {
-	UUID           string
-	Timestamp      time.Time
-	Server, Client api.Annotations
+	UUID      string
+	Timestamp time.Time
+	Server    api.Annotations `bigquery:"server"` // Use Standard Top-Level Column names.
+	Client    api.Annotations `bigquery:"client"` // Use Standard Top-Level Column names.
 }
 
 // Annotator is the interface that all systems that want to add metadata should implement.
