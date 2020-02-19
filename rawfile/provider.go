@@ -52,6 +52,8 @@ func (g *gcsProvider) Get(ctx context.Context) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+		// TODO(https://github.com/m-lab/uuid-annotator/issues/11) Only store one
+		// copy of data in RAM per process.
 		g.cachedReader = data
 		if g.md5 != nil {
 			metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(0)
