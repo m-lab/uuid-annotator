@@ -3,6 +3,7 @@ package ipannotator
 import (
 	"context"
 	"errors"
+	"log"
 	"math"
 	"net"
 	"net/url"
@@ -18,25 +19,31 @@ import (
 
 var localRawfile rawfile.Provider
 
+// Networks taken from https://github.com/maxmind/MaxMind-DB/blob/master/source-data/GeoIP2-City-Test.json
+var localIP = "175.16.199.3"
+var remoteIP = "202.196.224.5"
+
 func init() {
 	var err error
-	u, err := url.Parse("file:../testdata/GeoLite2-City.tar.gz")
+	// u, err := url.Parse("file:../testdata/GeoLite2-City.tar.gz")
+	u, err := url.Parse("file:../testdata/fake.tar.gz")
 	rtx.Must(err, "Could not parse URL")
 	localRawfile, err = rawfile.FromURL(context.Background(), u)
 	rtx.Must(err, "Could not create rawfile.Provider")
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }
 
 func TestIPAnnotationS2C(t *testing.T) {
 	localaddrs := []net.IP{
-		net.ParseIP("1.0.0.1"),
+		net.ParseIP(localIP),
 	}
 	ipa := New(context.Background(), localRawfile, localaddrs)
 
 	// Try to annotate a S2C connection.
 	conn := &inetdiag.SockID{
-		SrcIP:  "1.0.0.1", // A local IP
+		SrcIP:  localIP, // A local IP
 		SPort:  1,
-		DstIP:  "1.0.2.2", // One of the IPs in the test data
+		DstIP:  remoteIP, // One of the IPs in the test data
 		DPort:  2,
 		Cookie: 3,
 	}
@@ -44,25 +51,25 @@ func TestIPAnnotationS2C(t *testing.T) {
 	rtx.Must(ipa.Annotate(conn, ann), "Could not annotate connection")
 
 	// Latitudes gotten out of the testdata by hand.
-	if math.Abs(ann.Server.Geo.Latitude - -34.92) > .01 {
-		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", -34.92)
+	if math.Abs(ann.Server.Geo.Latitude-43.88) > .01 {
+		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", 43.88)
 	}
-	if math.Abs(ann.Client.Geo.Latitude-24.47) > .01 {
-		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 24.47)
+	if math.Abs(ann.Client.Geo.Latitude-13) > .01 {
+		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 13)
 	}
 }
 
 func TestIPAnnotationC2S(t *testing.T) {
 	localaddrs := []net.IP{
-		net.ParseIP("1.0.0.1"),
+		net.ParseIP(localIP),
 	}
 	ipa := New(context.Background(), localRawfile, localaddrs)
 
 	// Try to annotate a C2S connection.
 	conn := &inetdiag.SockID{
-		SrcIP:  "1.0.2.5", // One of the IPs in the test data
+		SrcIP:  remoteIP, // One of the IPs in the test data
 		SPort:  1,
-		DstIP:  "1.0.0.1", // A local IP
+		DstIP:  localIP, // A local IP
 		DPort:  2,
 		Cookie: 4,
 	}
@@ -72,11 +79,11 @@ func TestIPAnnotationC2S(t *testing.T) {
 
 	// Client and Server should be the same, no matter the order of dst and src.
 	// Latitudes gotten out of the testdata by hand.
-	if math.Abs(ann.Server.Geo.Latitude - -34.92) > .01 {
-		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", -34.92)
+	if math.Abs(ann.Server.Geo.Latitude-43.88) > .01 {
+		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", -43.88)
 	}
-	if math.Abs(ann.Client.Geo.Latitude-24.47) > .01 {
-		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 24.47)
+	if math.Abs(ann.Client.Geo.Latitude-13) > .01 {
+		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 13)
 	}
 }
 
@@ -175,7 +182,7 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 	ctx := context.Background()
 	ipa := ipannotator{
 		backingDataSource: badProvider{},
-		localIPs:          []net.IP{net.ParseIP("1.0.0.1")},
+		localIPs:          []net.IP{net.ParseIP(localIP)},
 	}
 	_, err := ipa.load(ctx)
 	if err == nil {
@@ -191,9 +198,9 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 
 	// Annotations should now succeed...
 	conn := &inetdiag.SockID{
-		SrcIP:  "1.0.0.1", // A local IP
+		SrcIP:  localIP, // A local IP
 		SPort:  1,
-		DstIP:  "1.0.2.2", // One of the IPs in the test data
+		DstIP:  remoteIP, // One of the IPs in the test data
 		DPort:  2,
 		Cookie: 3,
 	}

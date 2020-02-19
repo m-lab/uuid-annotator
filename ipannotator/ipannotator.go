@@ -86,7 +86,7 @@ var emptyResult = geoip2.City{}
 func (ipa *ipannotator) annotate(src string, ann *api.Annotations) error {
 	ip := net.ParseIP(src)
 	if ip == nil {
-		return fmt.Errorf("Failed to parse IP %q", src)
+		return fmt.Errorf("failed to parse IP %q", src)
 	}
 	record, err := ipa.maxmind.City(ip)
 	if err != nil {
@@ -95,7 +95,7 @@ func (ipa *ipannotator) annotate(src string, ann *api.Annotations) error {
 
 	// Check for empty results.
 	if isEmpty(record) {
-		return annotator.ErrNoAnnotation
+		return fmt.Errorf("not found %q", src)
 	}
 
 	ann.Geo = &api.GeolocationIP{
