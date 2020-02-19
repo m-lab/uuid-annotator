@@ -30,9 +30,8 @@ var (
 
 	// Reloading relatively frequently should be fine as long as (a) download
 	// failure is non-fatal for reloads and (b) cache-checking actually works so
-	// that we don't actually re-download it if the data is new. The first
-	// condition is enforced in the ipannotator package, and the second in
-	// rawfile.
+	// that we don't re-download the data until it is new. The first condition is
+	// enforced in the ipannotator package, and the second in rawfile.
 	reloadMin  = flag.Duration("reloadmin", time.Hour, "Minimum time to wait between reloads of backing data")
 	reloadTime = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax  = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
