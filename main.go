@@ -15,7 +15,7 @@ import (
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/ipannotator"
-	"github.com/m-lab/uuid-annotator/zipfile"
+	"github.com/m-lab/uuid-annotator/rawfile"
 
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
@@ -25,14 +25,13 @@ import (
 
 var (
 	datadir         = flag.String("datadir", ".", "The directory to put the data in")
-	maxmindurl      = flag.String("url", "", "The URL for the zipfile containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
+	maxmindurl      = flag.String("url", "", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
 	// Reloading relatively frequently should be fine as long as (a) download
 	// failure is non-fatal for reloads and (b) cache-checking actually works so
-	// that we don't actually re-download it if the data is new. The first
-	// condition is enforced in the ipannotator package, and the second in
-	// zipfile.
+	// that we don't re-download the data until it is new. The first condition is
+	// enforced in the ipannotator package, and the second in rawfile.
 	reloadMin  = flag.Duration("reloadmin", time.Hour, "Minimum time to wait between reloads of backing data")
 	reloadTime = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax  = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
@@ -80,7 +79,7 @@ func main() {
 	localIPs := findLocalIPs(localAddrs)
 	u, err := url.Parse(*maxmindurl)
 	rtx.Must(err, "Could not parse URL")
-	p, err := zipfile.FromURL(mainCtx, u)
+	p, err := rawfile.FromURL(mainCtx, u)
 	rtx.Must(err, "Could not get maxmind data from url")
 	ipa := ipannotator.New(mainCtx, p, localIPs)
 

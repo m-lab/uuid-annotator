@@ -8,12 +8,12 @@ import (
 	"sync"
 
 	"github.com/m-lab/go/rtx"
+	"github.com/oschwald/geoip2-golang"
 
 	"github.com/m-lab/annotation-service/api"
-	"github.com/m-lab/annotation-service/geolite2v2"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/zipfile"
+	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
 // ReloadingAnnotator is just a regular annotator with a Reload method.
@@ -26,8 +26,8 @@ type ReloadingAnnotator interface {
 type ipannotator struct {
 	mut               sync.RWMutex
 	localIPs          []net.IP
-	backingDataSource zipfile.Provider
-	maxmind           *geolite2v2.GeoDataset
+	backingDataSource rawfile.Provider
+	maxmind           *geoip2.Reader
 }
 
 // direction gives us an enum to keep track of which end of the connection is
@@ -69,8 +69,8 @@ func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 	}
 
 	var errs []error
-	errs = append(errs, ipa.maxmind.Annotate(ID.SrcIP, src))
-	errs = append(errs, ipa.maxmind.Annotate(ID.DstIP, dst))
+	errs = append(errs, ipa.annotate(ID.SrcIP, src))
+	errs = append(errs, ipa.annotate(ID.DstIP, dst))
 
 	// Return the first error (if any).
 	for _, e := range errs {
@@ -79,6 +79,47 @@ func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 		}
 	}
 	return nil
+}
+
+var emptyResult = geoip2.City{}
+
+func (ipa *ipannotator) annotate(src string, ann *api.Annotations) error {
+	ip := net.ParseIP(src)
+	if ip == nil {
+		return fmt.Errorf("failed to parse IP %q", src)
+	}
+	record, err := ipa.maxmind.City(ip)
+	if err != nil {
+		return err
+	}
+
+	// Check for empty results.
+	if isEmpty(record) {
+		return fmt.Errorf("not found %q", src)
+	}
+
+	ann.Geo = &api.GeolocationIP{
+		ContinentCode: record.Continent.Code,
+		CountryCode:   record.Country.IsoCode,
+		// CountryCode3: not present in record struct.
+		CountryName: record.Country.Names["en"],
+		MetroCode:   int64(record.Location.MetroCode),
+		City:        record.City.Names["en"],
+		// AreaCode: not present in record struct.
+		PostalCode:       record.Postal.Code,
+		Latitude:         record.Location.Latitude,
+		Longitude:        record.Location.Longitude,
+		AccuracyRadiusKm: int64(record.Location.AccuracyRadius),
+	}
+	// TODO: collect all subdivision data.
+	if len(record.Subdivisions) > 0 {
+		ann.Geo.Region = record.Subdivisions[0].IsoCode
+	}
+	return nil
+}
+
+func isEmpty(r *geoip2.City) bool {
+	return r.City.GeoNameID == 0 && r.Country.GeoNameID == 0 && r.Continent.GeoNameID == 0
 }
 
 // Reload is intended to be regularly called in a loop. It should check whether
@@ -97,18 +138,22 @@ func (ipa *ipannotator) Reload(ctx context.Context) {
 }
 
 // load unconditionally loads datasets and returns them.
-func (ipa *ipannotator) load(ctx context.Context) (*geolite2v2.GeoDataset, error) {
-	z, err := ipa.backingDataSource.Get(ctx)
+func (ipa *ipannotator) load(ctx context.Context) (*geoip2.Reader, error) {
+	tgz, err := ipa.backingDataSource.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return geolite2v2.DatasetFromZip(z)
+	data, err := rawfile.ReadFromTar(tgz, "GeoLite2-City.mmdb")
+	if err != nil {
+		return nil, err
+	}
+	return geoip2.FromBytes(data)
 }
 
 // New makes a new Annotator that uses IP addresses to generate geolocation and
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
-func New(ctx context.Context, geo zipfile.Provider, localIPs []net.IP) ReloadingAnnotator {
+func New(ctx context.Context, geo rawfile.Provider, localIPs []net.IP) ReloadingAnnotator {
 	ipa := &ipannotator{
 		backingDataSource: geo,
 		localIPs:          localIPs,

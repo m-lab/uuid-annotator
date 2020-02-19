@@ -1,7 +1,6 @@
-package zipfile
+package rawfile
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/hex"
@@ -20,13 +19,12 @@ var (
 	ErrUnsupportedURLScheme = errors.New("Unsupported URL scheme")
 )
 
-// Provider is the interface implemented by everything that can return a
-// zip.Reader.
+// Provider is the interface implemented by everything that can return raw files.
 type Provider interface {
-	// Get returns a zip.Reader pointer based on the latest copy of the data the
-	// provider refers to. It may be called multiple times, and caching is left
-	// up to the individual Provider implementation.
-	Get(ctx context.Context) (*zip.Reader, error)
+	// Get returns the raw file []byte read from the latest copy of the provider
+	// URL. It may be called multiple times. Caching is left up to the individual
+	// Provider implementation.
+	Get(ctx context.Context) ([]byte, error)
 }
 
 // gcsProvider gets zip files from Google Cloud Storage.
@@ -34,10 +32,10 @@ type gcsProvider struct {
 	bucket, filename string
 	client           stiface.Client
 	md5              []byte
-	cachedReader     *zip.Reader
+	cachedReader     []byte
 }
 
-func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
+func (g *gcsProvider) Get(ctx context.Context) ([]byte, error) {
 	o := g.client.Bucket(g.bucket).Object(g.filename)
 	oa, err := o.Attrs(ctx)
 	if err != nil {
@@ -54,11 +52,9 @@ func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
 		if err != nil {
 			return nil, err
 		}
-		zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
-		if err != nil {
-			return nil, err
-		}
-		g.cachedReader = zr
+		// TODO(https://github.com/m-lab/uuid-annotator/issues/11) Only store one
+		// copy of data in RAM per process.
+		g.cachedReader = data
 		if g.md5 != nil {
 			metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(0)
 		}
@@ -68,20 +64,20 @@ func (g *gcsProvider) Get(ctx context.Context) (*zip.Reader, error) {
 	return g.cachedReader, nil
 }
 
-// fileProvider gets zipfiles from the local disk.
+// fileProvider gets files from the local disk.
 type fileProvider struct {
 	filename string
 }
 
-func (f *fileProvider) Get(ctx context.Context) (*zip.Reader, error) {
+func (f *fileProvider) Get(ctx context.Context) ([]byte, error) {
 	b, err := ioutil.ReadFile(f.filename)
 	if err != nil {
 		return nil, err
 	}
-	return zip.NewReader(bytes.NewReader(b), int64(len(b)))
+	return b, nil
 }
 
-// FromURL returns a new zipfile.Provider based on the passed-in URL. Supported
+// FromURL returns a new rawfile.Provider based on the passed-in URL. Supported
 // URL schemes are currently: gs://bucket/filename and file:localpath . Whether
 // the path contained in the URL is valid isn't known until the Get() method of
 // the returned Provider is called. Unsupported URL schemes cause this to return
