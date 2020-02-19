@@ -1,7 +1,6 @@
-package zipfile
+package rawfile
 
 import (
-	"archive/zip"
 	"context"
 	"errors"
 	"io"
@@ -27,11 +26,6 @@ func TestFileFromURLThenGet(t *testing.T) {
 		{
 			name:       "Nonexistent file",
 			url:        "file://this/file/does/not/exist",
-			wantGetErr: true,
-		},
-		{
-			name:       "File that exists but is not a zipfile",
-			url:        "file:provider_test.go",
 			wantGetErr: true,
 		},
 	}
@@ -210,17 +204,17 @@ func readerForZipfileOnDisk() io.Reader {
 }
 
 func Test_gcsProvider_Get(t *testing.T) {
-	zipReaderForCaching := &zip.Reader{}
+	zipReaderForCaching := []byte{}
 
-	readerForNonZipfileOnDisk, err := os.Open("provider_test.go")
-	rtx.Must(err, "Could not open this test file")
+	//readerForNonZipfileOnDisk, err := os.Open("provider_test.go")
+	//rtx.Must(err, "Could not open this test file")
 
 	type fields struct {
 		bucket       string
 		filename     string
 		client       stiface.Client
 		md5          []byte
-		cachedReader *zip.Reader
+		cachedReader []byte
 	}
 	tests := []struct {
 		name       string
@@ -285,24 +279,6 @@ func Test_gcsProvider_Get(t *testing.T) {
 								MD5: []byte("a hash"),
 							},
 							reader: &readerWhereReadFails{},
-						},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "Read from fake GCS but it's not a zipfile",
-			fields: fields{
-				client: &fakeClient{
-					bh: &fakeBucketHandle{
-						oh: &fakeObjectHandle{
-							attrs: &storage.ObjectAttrs{
-								MD5: []byte("a hash"),
-							},
-							reader: &stifaceReaderThatsJustAnIOReader{
-								r: readerForNonZipfileOnDisk,
-							},
 						},
 					},
 				},
