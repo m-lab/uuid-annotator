@@ -22,7 +22,7 @@ func TestMainSmokeTest(t *testing.T) {
 	// Set up global variables.
 	mainCtx, mainCancel = context.WithCancel(context.Background())
 	*eventsocket.Filename = dir + "/eventsocket.sock"
-	*maxmindurl = "file:./testdata/GeoLite2City.zip"
+	*maxmindurl = "file:./testdata/GeoLite2-City.tar.gz"
 
 	// Now start up a fake eventsocket.
 	srv := eventsocket.New(*eventsocket.Filename)
