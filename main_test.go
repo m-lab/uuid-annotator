@@ -31,7 +31,7 @@ func TestMainSmokeTest(t *testing.T) {
 
 	// Cancel main after a tenth of a second.
 	go func() {
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 		mainCancel()
 	}()
 
