@@ -146,7 +146,7 @@ func (ipa *ipannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := rawfile.ReadFromTar(tgz, "GeoLite2-City.mmdb")
+	data, err := rawfile.FromTarGZ(tgz, "GeoLite2-City.mmdb")
 	if err != nil {
 		return nil, err
 	}

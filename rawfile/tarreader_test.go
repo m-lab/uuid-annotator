@@ -14,7 +14,7 @@ func mustRead(name string) []byte {
 	return b
 }
 
-func TestReadFromTar(t *testing.T) {
+func TestFromTarGZ(t *testing.T) {
 	tests := []struct {
 		name     string
 		tgz      []byte
@@ -43,16 +43,16 @@ func TestReadFromTar(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReadFromTar(tt.tgz, tt.filename)
+			got, err := FromTarGZ(tt.tgz, tt.filename)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ReadFromTar() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("FromTarGZ() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if tt.wantErr {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ReadFromTar() = %#v, want %#v", got, tt.want)
+				t.Errorf("FromTarGZ() = %#v, want %#v", got, tt.want)
 			}
 		})
 	}

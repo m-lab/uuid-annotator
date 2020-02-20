@@ -22,8 +22,8 @@ func FromGZ(gz []byte) ([]byte, error) {
 	return ioutil.ReadAll(gr)
 }
 
-// ReadFromTar reads the named file from the compressed, tar archive in tgz.
-func ReadFromTar(tgz []byte, name string) ([]byte, error) {
+// FromTarGZ reads the named file from the compressed, tar archive in tgz.
+func FromTarGZ(tgz []byte, name string) ([]byte, error) {
 	tr, err := newTarReader(bytes.NewReader(tgz))
 	if err != nil {
 		return nil, err
