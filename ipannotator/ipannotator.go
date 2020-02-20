@@ -140,6 +140,9 @@ func (ipa *ipannotator) Reload(ctx context.Context) {
 // load unconditionally loads datasets and returns them.
 func (ipa *ipannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 	tgz, err := ipa.backingDataSource.Get(ctx)
+	if err == rawfile.ErrNoChange {
+		return ipa.maxmind, nil
+	}
 	if err != nil {
 		return nil, err
 	}

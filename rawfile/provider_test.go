@@ -204,17 +204,12 @@ func readerForZipfileOnDisk() io.Reader {
 }
 
 func Test_gcsProvider_Get(t *testing.T) {
-	zipReaderForCaching := []byte{}
-
-	//readerForNonZipfileOnDisk, err := os.Open("provider_test.go")
-	//rtx.Must(err, "Could not open this test file")
 
 	type fields struct {
-		bucket       string
-		filename     string
-		client       stiface.Client
-		md5          []byte
-		cachedReader []byte
+		bucket   string
+		filename string
+		client   stiface.Client
+		md5      []byte
 	}
 	tests := []struct {
 		name       string
@@ -248,10 +243,9 @@ func Test_gcsProvider_Get(t *testing.T) {
 						},
 					},
 				},
-				cachedReader: zipReaderForCaching,
-				md5:          []byte("a hash"),
+				md5: []byte("a hash"),
 			},
-			wantNonNil: true,
+			wantErr: true,
 		},
 		{
 			name: "NewReader error is handled",
@@ -318,8 +312,7 @@ func Test_gcsProvider_Get(t *testing.T) {
 						},
 					},
 				},
-				cachedReader: zipReaderForCaching,
-				md5:          []byte("a different hash"),
+				md5: []byte("a different hash"),
 			},
 			wantNonNil: true,
 		},
@@ -327,11 +320,10 @@ func Test_gcsProvider_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &gcsProvider{
-				bucket:       tt.fields.bucket,
-				filename:     tt.fields.filename,
-				client:       tt.fields.client,
-				md5:          tt.fields.md5,
-				cachedReader: tt.fields.cachedReader,
+				bucket:   tt.fields.bucket,
+				filename: tt.fields.filename,
+				client:   tt.fields.client,
+				md5:      tt.fields.md5,
 			}
 			got, err := g.Get(context.Background())
 			if (err != nil) != tt.wantErr {

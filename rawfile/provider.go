@@ -17,6 +17,7 @@ import (
 // Errors that might be returned outside the package.
 var (
 	ErrUnsupportedURLScheme = errors.New("Unsupported URL scheme")
+	ErrNoChange             = errors.New("data is unchanged")
 )
 
 // Provider is the interface implemented by everything that can return raw files.
@@ -32,7 +33,6 @@ type gcsProvider struct {
 	bucket, filename string
 	client           stiface.Client
 	md5              []byte
-	cachedReader     []byte
 }
 
 func (g *gcsProvider) Get(ctx context.Context) ([]byte, error) {
@@ -41,27 +41,26 @@ func (g *gcsProvider) Get(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if g.cachedReader == nil || g.md5 == nil || !bytes.Equal(g.md5, oa.MD5) {
-		// Reload data only if the object changed or the data was never loaded in the first place.
-		r, err := o.NewReader(ctx)
-		if err != nil {
-			return nil, err
-		}
-		var data []byte
-		data, err = ioutil.ReadAll(r)
-		if err != nil {
-			return nil, err
-		}
-		// TODO(https://github.com/m-lab/uuid-annotator/issues/11) Only store one
-		// copy of data in RAM per process.
-		g.cachedReader = data
-		if g.md5 != nil {
-			metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(0)
-		}
-		g.md5 = oa.MD5
-		metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(1)
+	if g.md5 != nil && bytes.Equal(g.md5, oa.MD5) {
+		return nil, ErrNoChange
 	}
-	return g.cachedReader, nil
+
+	// Otherise, we know that either g.md5 == nil || g.md5 != oa.MD5.
+	// Reload data only if the object changed or the data was never loaded in the first place.
+	r, err := o.NewReader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	data, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	if g.md5 != nil {
+		metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(0)
+	}
+	g.md5 = oa.MD5
+	metrics.GCSFilesLoaded.WithLabelValues(hex.EncodeToString(g.md5)).Set(1)
+	return data, nil
 }
 
 // fileProvider gets files from the local disk.
