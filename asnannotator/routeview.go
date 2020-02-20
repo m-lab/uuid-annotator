@@ -34,17 +34,6 @@ type asnAnnotator struct {
 	asn6     api.Annotator
 }
 
-// direction gives us an enum to keep track of which end of the connection is
-// the server, because we are informed of connections without regard to which
-// end is the local server.
-type direction int
-
-const (
-	unknown direction = iota
-	s2c
-	c2s
-)
-
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
 // that IP based on the current copy of RouteViews data stored in the given providers.
 func New(ctx context.Context, as4 rawfile.Provider, as6 rawfile.Provider, localIPs []net.IP) ReloadingAnnotator {
@@ -66,26 +55,9 @@ func (a *asnAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	a.m.RLock()
 	defer a.m.RUnlock()
 
-	dir := unknown
-	for _, local := range a.localIPs {
-		if ID.SrcIP == local.String() {
-			dir = s2c
-		}
-		if ID.DstIP == local.String() {
-			dir = c2s
-		}
-	}
-
-	var src, dst *api.Annotations
-	switch dir {
-	case s2c:
-		src = &annotations.Server
-		dst = &annotations.Client
-	case c2s:
-		src = &annotations.Client
-		dst = &annotations.Server
-	case unknown:
-		return fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)
+	src, dst, err := annotator.Direction(ID, a.localIPs, annotations)
+	if err != nil {
+		return err
 	}
 
 	var errs []error
