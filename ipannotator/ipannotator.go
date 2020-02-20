@@ -30,42 +30,13 @@ type ipannotator struct {
 	maxmind           *geoip2.Reader
 }
 
-// direction gives us an enum to keep track of which end of the connection is
-// the server, because we are informed of connections without regard to which
-// end is the local server.
-type direction int
-
-const (
-	unknown direction = iota
-	s2c
-	c2s
-)
-
-// Annotate puts into geolocation data and ASN data into the passed-in annotations map.
 func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
 	ipa.mut.RLock()
 	defer ipa.mut.RUnlock()
 
-	dir := unknown
-	for _, local := range ipa.localIPs {
-		if ID.SrcIP == local.String() {
-			dir = s2c
-		}
-		if ID.DstIP == local.String() {
-			dir = c2s
-		}
-	}
-
-	var src, dst *api.Annotations
-	switch dir {
-	case s2c:
-		src = &annotations.Server
-		dst = &annotations.Client
-	case c2s:
-		src = &annotations.Client
-		dst = &annotations.Server
-	case unknown:
-		return fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)
+	src, dst, err := annotator.Direction(ID, ipa.localIPs, annotations)
+	if err != nil {
+		return err
 	}
 
 	var errs []error
