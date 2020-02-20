@@ -70,8 +70,9 @@ func TestFromGZ(t *testing.T) {
 			file: "../testdata/RouteViewIPv4.tiny.gz",
 		},
 		{
-			name: "error-corrupt-gz",
-			file: "../testdata/corrupt.gz",
+			name:    "error-corrupt-gz",
+			file:    "../testdata/corrupt.gz",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
