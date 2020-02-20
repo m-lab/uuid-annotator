@@ -64,7 +64,9 @@ func (ipa *ipannotator) annotate(src string, ann *api.Annotations) error {
 		return err
 	}
 
-	// Check for empty results.
+	// Check for empty results because "not found" is not an error. Instead the
+	// geoip2 package returns an empty result. May be fixed in a future version:
+	// https://github.com/oschwald/geoip2-golang/issues/32
 	if isEmpty(record) {
 		return fmt.Errorf("not found %q", src)
 	}
