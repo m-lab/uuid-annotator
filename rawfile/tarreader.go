@@ -13,6 +13,15 @@ import (
 // ErrFileNotFound is returned when the given name is not found in the archive.
 var ErrFileNotFound = errors.New("file not found")
 
+// FromGZ decompresses the given data.
+func FromGZ(gz []byte) ([]byte, error) {
+	gr, err := gzip.NewReader(bytes.NewReader(gz))
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(gr)
+}
+
 // ReadFromTar reads the named file from the compressed, tar archive in tgz.
 func ReadFromTar(tgz []byte, name string) ([]byte, error) {
 	tr, err := newTarReader(bytes.NewReader(tgz))
