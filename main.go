@@ -14,6 +14,7 @@ import (
 	"github.com/m-lab/go/warnonerror"
 
 	"github.com/m-lab/uuid-annotator/annotator"
+	"github.com/m-lab/uuid-annotator/asnannotator"
 	"github.com/m-lab/uuid-annotator/ipannotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
 
@@ -24,8 +25,12 @@ import (
 )
 
 var (
-	datadir         = flag.String("datadir", ".", "The directory to put the data in")
-	maxmindurl      = flag.String("url", "", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
+	datadir    = flag.String("datadir", ".", "The directory to put the data in")
+	maxmindurl = flag.String("maxmind.url", "", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
+	// downloader-$PROJECT/RouteViewIPv4/current/routeviews.pfx2as.gz
+	routeviewv4 = flag.String("routeview-v4.url", "", "The URL for the RouteViewIPv4 file containing ASN metadata. gs:// and file:// schemes accepted.")
+	// downloader-$PROJECT/RouteViewIPv6/current/routeviews.pfx2as.gz
+	routeviewv6     = flag.String("routeview-v6.url", "", "The URL for the RouteViewIPv6 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
 	// Reloading relatively frequently should be fine as long as (a) download
@@ -83,6 +88,14 @@ func main() {
 	rtx.Must(err, "Could not get maxmind data from url")
 	ipa := ipannotator.New(mainCtx, p, localIPs)
 
+	rv4, err := url.Parse(*routeviewv4)
+	rtx.Must(err, "Could not parse routeview v4 URL")
+	rv6, err := url.Parse(*routeviewv6)
+	rtx.Must(err, "Could not parse routeview v6 URL")
+	p4, err := rawfile.FromURL(mainCtx, rv4)
+	p6, err := rawfile.FromURL(mainCtx, rv6)
+	asn := asnannotator.New(mainCtx, p4, p6, localIPs)
+
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
 	go func() {
@@ -95,12 +108,13 @@ func main() {
 		rtx.Must(err, "Could not create ticker for reloading")
 		for range tick.C {
 			ipa.Reload(mainCtx)
+			asn.Reload(mainCtx)
 		}
 		wg.Done()
 	}()
 
 	// Generate .json files for every UUID discovered.
-	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{ipa})
+	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{ipa, asn})
 	wg.Add(1)
 	go func() {
 		h.ProcessIncomingRequests(mainCtx)
