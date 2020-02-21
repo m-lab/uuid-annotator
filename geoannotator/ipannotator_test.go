@@ -1,4 +1,4 @@
-package ipannotator
+package geoannotator
 
 import (
 	"context"
@@ -37,7 +37,7 @@ func TestIPAnnotationS2C(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP(localIP),
 	}
-	ipa := New(context.Background(), localRawfile, localaddrs)
+	g := New(context.Background(), localRawfile, localaddrs)
 
 	// Try to annotate a S2C connection.
 	conn := &inetdiag.SockID{
@@ -48,7 +48,7 @@ func TestIPAnnotationS2C(t *testing.T) {
 		Cookie: 3,
 	}
 	ann := &annotator.Annotations{}
-	rtx.Must(ipa.Annotate(conn, ann), "Could not annotate connection")
+	rtx.Must(g.Annotate(conn, ann), "Could not annotate connection")
 
 	// Latitudes gotten out of the testdata by hand.
 	if math.Abs(ann.Server.Geo.Latitude-43.88) > .01 {
@@ -63,7 +63,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP(localIP),
 	}
-	ipa := New(context.Background(), localRawfile, localaddrs)
+	g := New(context.Background(), localRawfile, localaddrs)
 
 	// Try to annotate a C2S connection.
 	conn := &inetdiag.SockID{
@@ -75,7 +75,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 	}
 
 	ann := &annotator.Annotations{}
-	rtx.Must(ipa.Annotate(conn, ann), "Could not annotate connection")
+	rtx.Must(g.Annotate(conn, ann), "Could not annotate connection")
 
 	// Client and Server should be the same, no matter the order of dst and src.
 	// Latitudes gotten out of the testdata by hand.
@@ -91,7 +91,7 @@ func TestIPAnnotationBadIP(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	ipa := New(context.Background(), localRawfile, localaddrs)
+	g := New(context.Background(), localRawfile, localaddrs)
 
 	conn := &inetdiag.SockID{
 		SrcIP:  "this-is-not-an-IP",
@@ -102,7 +102,7 @@ func TestIPAnnotationBadIP(t *testing.T) {
 	}
 
 	ann := &annotator.Annotations{}
-	err := ipa.Annotate(conn, ann)
+	err := g.Annotate(conn, ann)
 
 	if err == nil {
 		t.Errorf("Annotate succeeded with a bad IP: %q", conn.SrcIP)
@@ -113,7 +113,7 @@ func TestIPAnnotationBadDst(t *testing.T) {
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
-	ipa := New(context.Background(), localRawfile, localaddrs)
+	g := New(context.Background(), localRawfile, localaddrs)
 
 	conn := &inetdiag.SockID{
 		SrcIP:  "1.0.0.1",
@@ -124,7 +124,7 @@ func TestIPAnnotationBadDst(t *testing.T) {
 	}
 
 	ann := &annotator.Annotations{}
-	err := ipa.Annotate(conn, ann)
+	err := g.Annotate(conn, ann)
 
 	if err == nil {
 		t.Errorf("Annotate succeeded with a bad IP: %q", conn.SrcIP)
@@ -133,7 +133,7 @@ func TestIPAnnotationBadDst(t *testing.T) {
 
 func TestIPAnnotationUknownDirection(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	ipa := New(context.Background(), localRawfile, localaddrs)
+	g := New(context.Background(), localRawfile, localaddrs)
 
 	// Try to annotate a connection with no local IP.
 	conn := &inetdiag.SockID{
@@ -145,7 +145,7 @@ func TestIPAnnotationUknownDirection(t *testing.T) {
 	}
 
 	ann := &annotator.Annotations{}
-	err := ipa.Annotate(conn, ann)
+	err := g.Annotate(conn, ann)
 	if err == nil {
 		t.Error("Should have had an error due to unknown direction")
 	}
@@ -153,7 +153,7 @@ func TestIPAnnotationUknownDirection(t *testing.T) {
 
 func TestIPAnnotationUknownIP(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
-	ipa := New(context.Background(), localRawfile, localaddrs)
+	g := New(context.Background(), localRawfile, localaddrs)
 
 	// Try to annotate a connection with no local IP.
 	conn := &inetdiag.SockID{
@@ -165,7 +165,7 @@ func TestIPAnnotationUknownIP(t *testing.T) {
 	}
 
 	ann := &annotator.Annotations{}
-	err := ipa.Annotate(conn, ann)
+	err := g.Annotate(conn, ann)
 	if !errors.Is(err, annotator.ErrNoAnnotation) {
 		pretty.Print(ann)
 		t.Error("Should have had an ErrNoAnnotation error due to IP missing from our dataset, but got", err)
@@ -180,21 +180,21 @@ func (badProvider) Get(_ context.Context) ([]byte, error) {
 
 func TestIPAnnotationLoadErrors(t *testing.T) {
 	ctx := context.Background()
-	ipa := ipannotator{
+	g := geoannotator{
 		backingDataSource: badProvider{},
 		localIPs:          []net.IP{net.ParseIP(localIP)},
 	}
-	_, err := ipa.load(ctx)
+	_, err := g.load(ctx)
 	if err == nil {
 		t.Error("Should have had a non-nil error due to missing file")
 	}
 
 	// load errors should not cause Reload to crash.
-	ipa.Reload(ctx) // No crash == success.
+	g.Reload(ctx) // No crash == success.
 
 	// Now change the backing source, and the next Reload should load the actual data.
-	ipa.backingDataSource = localRawfile
-	ipa.Reload(ctx)
+	g.backingDataSource = localRawfile
+	g.Reload(ctx)
 
 	// Annotations should now succeed...
 	conn := &inetdiag.SockID{
@@ -205,5 +205,5 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 		Cookie: 3,
 	}
 	ann := &annotator.Annotations{}
-	rtx.Must(ipa.Annotate(conn, ann), "Could not annotate connection")
+	rtx.Must(g.Annotate(conn, ann), "Could not annotate connection")
 }
