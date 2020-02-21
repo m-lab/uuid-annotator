@@ -25,8 +25,6 @@ var localEmpty rawfile.Provider
 
 // Networks taken from https://github.com/maxmind/MaxMind-DB/blob/master/source-data/GeoIP2-City-Test.json
 var localIP = "175.16.199.3"
-
-// var remoteIP = "202.196.224.5"
 var remoteIP = "2.125.160.216" // includes multiple subdivision annotations.
 
 func init() {
