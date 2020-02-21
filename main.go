@@ -14,7 +14,7 @@ import (
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/asnannotator"
-	"github.com/m-lab/uuid-annotator/ipannotator"
+	"github.com/m-lab/uuid-annotator/geoannotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
 
 	"github.com/m-lab/go/prometheusx"
@@ -33,7 +33,7 @@ var (
 	// Reloading relatively frequently should be fine as long as (a) download
 	// failure is non-fatal for reloads and (b) cache-checking actually works so
 	// that we don't re-download the data until it is new. The first condition is
-	// enforced in the ipannotator package, and the second in rawfile.
+	// enforced in the geoannotator package, and the second in rawfile.
 	reloadMin  = flag.Duration("reloadmin", time.Hour, "Minimum time to wait between reloads of backing data")
 	reloadTime = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax  = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
@@ -84,7 +84,7 @@ func main() {
 	localIPs := findLocalIPs(localAddrs)
 	p, err := rawfile.FromURL(mainCtx, maxmindurl.URL)
 	rtx.Must(err, "Could not get maxmind data from url")
-	ipa := ipannotator.New(mainCtx, p, localIPs)
+	geo := geoannotator.New(mainCtx, p, localIPs)
 
 	p4, err := rawfile.FromURL(mainCtx, routeviewv4.URL)
 	rtx.Must(err, "Could not load routeview v4 URL")
@@ -103,14 +103,14 @@ func main() {
 		tick, err := memoryless.NewTicker(mainCtx, reloadConfig)
 		rtx.Must(err, "Could not create ticker for reloading")
 		for range tick.C {
-			ipa.Reload(mainCtx)
+			geo.Reload(mainCtx)
 			asn.Reload(mainCtx)
 		}
 		wg.Done()
 	}()
 
 	// Generate .json files for every UUID discovered.
-	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{ipa, asn})
+	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn})
 	wg.Add(1)
 	go func() {
 		h.ProcessIncomingRequests(mainCtx)
