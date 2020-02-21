@@ -30,6 +30,7 @@ type geoannotator struct {
 	maxmind           *geoip2.Reader
 }
 
+// Annotate puts into geolocation data and ASN data into the passed-in annotations map.
 func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
 	g.mut.RLock()
 	defer g.mut.RUnlock()
@@ -72,21 +73,25 @@ func (g *geoannotator) annotate(src string, ann *api.Annotations) error {
 	}
 
 	ann.Geo = &api.GeolocationIP{
-		ContinentCode: record.Continent.Code,
-		CountryCode:   record.Country.IsoCode,
-		// CountryCode3: not present in record struct.
-		CountryName: record.Country.Names["en"],
-		MetroCode:   int64(record.Location.MetroCode),
-		City:        record.City.Names["en"],
-		// AreaCode: not present in record struct.
+		ContinentCode:    record.Continent.Code,
+		CountryCode:      record.Country.IsoCode,
+		CountryName:      record.Country.Names["en"],
+		MetroCode:        int64(record.Location.MetroCode),
+		City:             record.City.Names["en"],
 		PostalCode:       record.Postal.Code,
 		Latitude:         record.Location.Latitude,
 		Longitude:        record.Location.Longitude,
 		AccuracyRadiusKm: int64(record.Location.AccuracyRadius),
 	}
-	// TODO: collect all subdivision data.
+
+	// Collect subdivision information, if found.
 	if len(record.Subdivisions) > 0 {
-		ann.Geo.Region = record.Subdivisions[0].IsoCode
+		ann.Geo.Subdivision1ISOCode = record.Subdivisions[0].IsoCode
+		ann.Geo.Subdivision1Name = record.Subdivisions[0].Names["en"]
+		if len(record.Subdivisions) > 1 {
+			ann.Geo.Subdivision2ISOCode = record.Subdivisions[1].IsoCode
+			ann.Geo.Subdivision2Name = record.Subdivisions[1].Names["en"]
+		}
 	}
 	return nil
 }
