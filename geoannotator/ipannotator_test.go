@@ -8,28 +8,44 @@ import (
 	"net"
 	"net/url"
 	"testing"
+	"unsafe"
 
 	"github.com/m-lab/go/pretty"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
+	"github.com/oschwald/geoip2-golang"
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
 var localRawfile rawfile.Provider
+var localWrongType rawfile.Provider
+var localEmpty rawfile.Provider
 
 // Networks taken from https://github.com/maxmind/MaxMind-DB/blob/master/source-data/GeoIP2-City-Test.json
 var localIP = "175.16.199.3"
-var remoteIP = "202.196.224.5"
+
+// var remoteIP = "202.196.224.5"
+var remoteIP = "2.125.160.216" // includes multiple subdivision annotations.
 
 func init() {
 	var err error
-	// u, err := url.Parse("file:../testdata/GeoLite2-City.tar.gz")
 	u, err := url.Parse("file:../testdata/fake.tar.gz")
 	rtx.Must(err, "Could not parse URL")
 	localRawfile, err = rawfile.FromURL(context.Background(), u)
 	rtx.Must(err, "Could not create rawfile.Provider")
+
+	u, err = url.Parse("file:../testdata/wrongtype.tar.gz")
+	rtx.Must(err, "Could not parse URL")
+	localWrongType, err = rawfile.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create rawfile.Provider")
+
+	u, err = url.Parse("file:../testdata/empty.tar.gz")
+	rtx.Must(err, "Could not parse URL")
+	localEmpty, err = rawfile.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create rawfile.Provider")
+
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }
 
@@ -54,8 +70,8 @@ func TestIPAnnotationS2C(t *testing.T) {
 	if math.Abs(ann.Server.Geo.Latitude-43.88) > .01 {
 		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", 43.88)
 	}
-	if math.Abs(ann.Client.Geo.Latitude-13) > .01 {
-		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 13)
+	if math.Abs(ann.Client.Geo.Latitude-51.75) > .01 {
+		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 51.75)
 	}
 }
 
@@ -82,8 +98,8 @@ func TestIPAnnotationC2S(t *testing.T) {
 	if math.Abs(ann.Server.Geo.Latitude-43.88) > .01 {
 		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", -43.88)
 	}
-	if math.Abs(ann.Client.Geo.Latitude-13) > .01 {
-		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 13)
+	if math.Abs(ann.Client.Geo.Latitude-51.75) > .01 {
+		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 51.75)
 	}
 }
 
@@ -151,7 +167,7 @@ func TestIPAnnotationUknownDirection(t *testing.T) {
 	}
 }
 
-func TestIPAnnotationUknownIP(t *testing.T) {
+func TestIPAnnotationUnknownIP(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
 	g := New(context.Background(), localRawfile, localaddrs)
 
@@ -172,16 +188,35 @@ func TestIPAnnotationUknownIP(t *testing.T) {
 	}
 }
 
-type badProvider struct{}
-
-func (badProvider) Get(_ context.Context) ([]byte, error) {
-	return nil, errors.New("Error for testing")
+type badProvider struct {
+	err error
 }
 
+func (b badProvider) Get(_ context.Context) ([]byte, error) {
+	return nil, b.err
+}
+
+func TestIPAnnotationLoadNoChange(t *testing.T) {
+	ctx := context.Background()
+	g := geoannotator{
+		backingDataSource: badProvider{rawfile.ErrNoChange},
+		localIPs:          []net.IP{net.ParseIP(localIP)},
+		// NOTE: Use a fake pointer so we can verify that it's returned below.
+		maxmind: (*geoip2.Reader)(unsafe.Pointer(uintptr(0x01010202))),
+	}
+
+	mm, err := g.load(ctx)
+	if err != nil {
+		t.Errorf("geoannotator.load() returned error; got %q, want nil", err)
+	}
+	if mm != g.maxmind {
+		t.Errorf("geoannotator.load() did not return expected ptr; got %v, want %v", mm, g.maxmind)
+	}
+}
 func TestIPAnnotationLoadErrors(t *testing.T) {
 	ctx := context.Background()
 	g := geoannotator{
-		backingDataSource: badProvider{},
+		backingDataSource: badProvider{errors.New("Error for testing")},
 		localIPs:          []net.IP{net.ParseIP(localIP)},
 	}
 	_, err := g.load(ctx)
@@ -206,4 +241,41 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 	}
 	ann := &annotator.Annotations{}
 	rtx.Must(g.Annotate(conn, ann), "Could not annotate connection")
+}
+
+func TestIPAnnotationWrongDbType(t *testing.T) {
+	localIPs := []net.IP{net.ParseIP(localIP)}
+	// localWrongType should load successfully, but fail to annotate.
+	g := New(context.Background(), localWrongType, localIPs)
+
+	// Annotations should now succeed...
+	conn := &inetdiag.SockID{
+		SrcIP:  localIP, // A local IP
+		SPort:  1,
+		DstIP:  remoteIP, // One of the IPs in the test data
+		DPort:  2,
+		Cookie: 3,
+	}
+	ann := &annotator.Annotations{}
+	err := g.Annotate(conn, ann)
+
+	if err == nil {
+		t.Errorf("Annotate() with wrong db type did not return an error: %q", err)
+	}
+}
+
+func TestIPAnnotationMissingCityDB(t *testing.T) {
+	ctx := context.Background()
+	g := geoannotator{
+		backingDataSource: localEmpty,
+		localIPs:          []net.IP{net.ParseIP(localIP)},
+	}
+
+	mm, err := g.load(ctx)
+	if err != rawfile.ErrFileNotFound {
+		t.Errorf("geoannotator.load() returned wrong error; got %q, want %q", err, rawfile.ErrFileNotFound)
+	}
+	if mm != nil {
+		t.Errorf("geoannotator.load() return non-nil ptr; got %v, want nil", mm)
+	}
 }
