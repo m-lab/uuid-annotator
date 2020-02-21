@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net"
-	"net/url"
 	"sync"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/m-lab/go/warnonerror"
 
 	"github.com/m-lab/uuid-annotator/annotator"
+	"github.com/m-lab/uuid-annotator/asnannotator"
 	"github.com/m-lab/uuid-annotator/ipannotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
 
@@ -25,7 +25,9 @@ import (
 
 var (
 	datadir         = flag.String("datadir", ".", "The directory to put the data in")
-	maxmindurl      = flag.String("url", "", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
+	maxmindurl      = flagx.URL{}
+	routeviewv4     = flagx.URL{}
+	routeviewv6     = flagx.URL{}
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
 	// Reloading relatively frequently should be fine as long as (a) download
@@ -41,6 +43,9 @@ var (
 )
 
 func init() {
+	flag.Var(&maxmindurl, "maxmind.url", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
+	flag.Var(&routeviewv4, "routeview-v4.url", "The URL for the RouteViewIPv4 file containing ASN metadata. gs:// and file:// schemes accepted.")
+	flag.Var(&routeviewv6, "routeview-v6.url", "The URL for the RouteViewIPv6 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	log.SetFlags(log.LstdFlags | log.LUTC | log.Lshortfile)
 }
 
@@ -77,11 +82,15 @@ func main() {
 	localAddrs, err := net.InterfaceAddrs()
 	rtx.Must(err, "Could not read local addresses")
 	localIPs := findLocalIPs(localAddrs)
-	u, err := url.Parse(*maxmindurl)
-	rtx.Must(err, "Could not parse URL")
-	p, err := rawfile.FromURL(mainCtx, u)
+	p, err := rawfile.FromURL(mainCtx, maxmindurl.URL)
 	rtx.Must(err, "Could not get maxmind data from url")
 	ipa := ipannotator.New(mainCtx, p, localIPs)
+
+	p4, err := rawfile.FromURL(mainCtx, routeviewv4.URL)
+	rtx.Must(err, "Could not load routeview v4 URL")
+	p6, err := rawfile.FromURL(mainCtx, routeviewv6.URL)
+	rtx.Must(err, "Could not load routeview v6 URL")
+	asn := asnannotator.New(mainCtx, p4, p6, localIPs)
 
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
@@ -95,12 +104,13 @@ func main() {
 		rtx.Must(err, "Could not create ticker for reloading")
 		for range tick.C {
 			ipa.Reload(mainCtx)
+			asn.Reload(mainCtx)
 		}
 		wg.Done()
 	}()
 
 	// Generate .json files for every UUID discovered.
-	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{ipa})
+	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{ipa, asn})
 	wg.Add(1)
 	go func() {
 		h.ProcessIncomingRequests(mainCtx)

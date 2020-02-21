@@ -4,6 +4,8 @@ package annotator
 
 import (
 	"errors"
+	"fmt"
+	"net"
 	"time"
 
 	"github.com/m-lab/annotation-service/api"
@@ -29,4 +31,45 @@ type Annotations struct {
 // Annotator is the interface that all systems that want to add metadata should implement.
 type Annotator interface {
 	Annotate(ID *inetdiag.SockID, annotations *Annotations) error
+}
+
+// direction gives us an enum to keep track of which end of the connection is
+// the server, because we are informed of connections without regard to which
+// end is the local server.
+type direction int
+
+const (
+	unknown direction = iota
+	s2c
+	c2s
+)
+
+// Direction determines whether the IPs in the given ID map to the server or client annotations.
+// Direction returns the corresponding "src" and "dst" annotation fields from the given annotator.Annotations.
+func Direction(ID *inetdiag.SockID, localIPs []net.IP, ann *Annotations) (*api.Annotations, *api.Annotations, error) {
+	dir := unknown
+	for _, local := range localIPs {
+		if ID.SrcIP == local.String() {
+			dir = s2c
+			break
+		}
+		if ID.DstIP == local.String() {
+			dir = c2s
+			break
+		}
+	}
+
+	var src, dst *api.Annotations
+	switch dir {
+	case s2c:
+		src = &ann.Server
+		dst = &ann.Client
+	case c2s:
+		src = &ann.Client
+		dst = &ann.Server
+	case unknown:
+		return nil, nil, fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)
+	}
+
+	return src, dst, nil
 }

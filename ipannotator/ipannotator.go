@@ -30,42 +30,13 @@ type ipannotator struct {
 	maxmind           *geoip2.Reader
 }
 
-// direction gives us an enum to keep track of which end of the connection is
-// the server, because we are informed of connections without regard to which
-// end is the local server.
-type direction int
-
-const (
-	unknown direction = iota
-	s2c
-	c2s
-)
-
-// Annotate puts into geolocation data and ASN data into the passed-in annotations map.
 func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
 	ipa.mut.RLock()
 	defer ipa.mut.RUnlock()
 
-	dir := unknown
-	for _, local := range ipa.localIPs {
-		if ID.SrcIP == local.String() {
-			dir = s2c
-		}
-		if ID.DstIP == local.String() {
-			dir = c2s
-		}
-	}
-
-	var src, dst *api.Annotations
-	switch dir {
-	case s2c:
-		src = &annotations.Server
-		dst = &annotations.Client
-	case c2s:
-		src = &annotations.Client
-		dst = &annotations.Server
-	case unknown:
-		return fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)
+	src, dst, err := annotator.Direction(ID, ipa.localIPs, annotations)
+	if err != nil {
+		return err
 	}
 
 	var errs []error
@@ -93,7 +64,9 @@ func (ipa *ipannotator) annotate(src string, ann *api.Annotations) error {
 		return err
 	}
 
-	// Check for empty results.
+	// Check for empty results because "not found" is not an error. Instead the
+	// geoip2 package returns an empty result. May be fixed in a future version:
+	// https://github.com/oschwald/geoip2-golang/issues/32
 	if isEmpty(record) {
 		return fmt.Errorf("not found %q", src)
 	}
@@ -146,7 +119,7 @@ func (ipa *ipannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := rawfile.ReadFromTar(tgz, "GeoLite2-City.mmdb")
+	data, err := rawfile.FromTarGZ(tgz, "GeoLite2-City.mmdb")
 	if err != nil {
 		return nil, err
 	}
