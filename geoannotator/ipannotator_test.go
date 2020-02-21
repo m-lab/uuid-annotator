@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/url"
 	"testing"
-	"unsafe"
 
 	"github.com/m-lab/go/pretty"
 	"github.com/m-lab/go/rtx"
@@ -196,11 +195,11 @@ func (b badProvider) Get(_ context.Context) ([]byte, error) {
 
 func TestIPAnnotationLoadNoChange(t *testing.T) {
 	ctx := context.Background()
+	fakeReader := geoip2.Reader{}
 	g := geoannotator{
 		backingDataSource: badProvider{rawfile.ErrNoChange},
 		localIPs:          []net.IP{net.ParseIP(localIP)},
-		// NOTE: Use a fake pointer so we can verify that it's returned below.
-		maxmind: (*geoip2.Reader)(unsafe.Pointer(uintptr(0x01010202))),
+		maxmind:           &fakeReader, // NOTE: fake pointer just to verify return value below.
 	}
 
 	mm, err := g.load(ctx)
