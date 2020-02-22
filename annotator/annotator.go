@@ -8,7 +8,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/m-lab/annotation-service/api"
 	"github.com/m-lab/tcp-info/inetdiag"
 )
 
@@ -20,12 +19,79 @@ var (
 	ErrNoAnnotation = errors.New("Could not annotate IP address")
 )
 
+// The Geolocation struct contains all the information needed for the
+// geolocation data that will be inserted into big query. The fields are
+// capitalized for exporting, although the originals in the DB schema
+// are not.
+// This is in common because it is used by the etl repository.
+type Geolocation struct {
+	ContinentCode string `json:",omitempty"` // Gives a shorthand for the continent
+	CountryCode   string `json:",omitempty"` // Gives a shorthand for the country
+	CountryName   string `json:",omitempty"` // Name of the country
+
+	// Subdivision fields are provided by MaxMind Geo2 format and used by uuid-annotator.
+	Subdivision1ISOCode string `json:",omitempty"`
+	Subdivision1Name    string `json:",omitempty"`
+	Subdivision2ISOCode string `json:",omitempty"`
+	Subdivision2Name    string `json:",omitempty"`
+
+	MetroCode        int64   `json:",omitempty"` // Metro code within the country
+	City             string  `json:",omitempty"` // City within the region
+	PostalCode       string  `json:",omitempty"` // Postal code, again similar to metro
+	Latitude         float64 `json:",omitempty"` // Latitude
+	Longitude        float64 `json:",omitempty"` // Longitude
+	AccuracyRadiusKm int64   `json:",omitempty"` // Accuracy Radius (geolite2 from 2018)
+}
+
+// A System is the base element. It may contain a single ASN, or multiple ASNs
+// comprising an AS set.
+type System struct {
+	// ASNs contains a single ASN, or AS set. There must always be at least one
+	// ASN. If there are more than one ASN, they are (arbitrarily) listed in
+	// increasing numerical order.
+	ASNs []uint32
+}
+
+// Network contains the Autonomous System information associated with the IP prefix.
+// Roughly 99% of mappings consist of a single System with a single ASN.
+type Network struct {
+	CIDR     string `json:",omitempty"` // the IP prefix found in the RouteView data.
+	ASNumber uint32 `json:",omitempty"` // Most common AS number.
+	ASName   string `json:",omitempty"` // Place holder for AS name.
+	Missing  bool   // True when the ASN data is missing from RouteView.
+
+	// Systems may contain data for Multi-Origin ASNs. Typically, RouteView
+	// records a single ASN per netblock.
+	Systems []System `json:",omitempty"`
+}
+
+// Annotation wraps client- and server-specific annotation types.
+type Annotation interface {
+	GetGeo() *Geolocation
+	GetNetwork() *Network
+}
+
+// ClientAnnotations are client-specific fields for annotation metadata with
+// pointers to geo location and ASN data.
+type ClientAnnotations struct {
+	Geo     *Geolocation // Holds the Client geolocation data
+	Network *Network     // Holds the Autonomous System data.
+}
+
+// ServerAnnotations are server-specific fields populated by the uuid-annotator.
+type ServerAnnotations struct {
+	Site    string       // M-Lab site, i.e. lga01, yyz02, etc.
+	Machine string       // Specific M-Lab machine at a site, i.e. "mlab1", "mlab2", etc.
+	Geo     *Geolocation // Holds the Server geolocation data.
+	Network *Network     // Holds the Autonomous System data.
+}
+
 // Annotations contains the standard columns we would like to add as annotations for every UUID.
 type Annotations struct {
 	UUID      string
 	Timestamp time.Time
-	Server    api.Annotations `bigquery:"server"` // Use Standard Top-Level Column names.
-	Client    api.Annotations `bigquery:"client"` // Use Standard Top-Level Column names.
+	Server    ServerAnnotations `bigquery:"server"` // Use Standard Top-Level Column names.
+	Client    ClientAnnotations `bigquery:"client"` // Use Standard Top-Level Column names.
 }
 
 // Annotator is the interface that all systems that want to add metadata should implement.
@@ -33,43 +99,28 @@ type Annotator interface {
 	Annotate(ID *inetdiag.SockID, annotations *Annotations) error
 }
 
-// direction gives us an enum to keep track of which end of the connection is
+// Direction gives us an enum to keep track of which end of the connection is
 // the server, because we are informed of connections without regard to which
 // end is the local server.
-type direction int
+type Direction int
 
+// Specific directions.
 const (
-	unknown direction = iota
-	s2c
-	c2s
+	Unknown Direction = iota
+	S2C
+	C2S
 )
 
-// Direction determines whether the IPs in the given ID map to the server or client annotations.
-// Direction returns the corresponding "src" and "dst" annotation fields from the given annotator.Annotations.
-func Direction(ID *inetdiag.SockID, localIPs []net.IP, ann *Annotations) (*api.Annotations, *api.Annotations, error) {
-	dir := unknown
+// FindDirection determines whether the IPs in the given ID map to the server or client annotations.
+// FindDirection returns the corresponding "src" and "dst" annotation fields from the given annotator.Annotations.
+func FindDirection(ID *inetdiag.SockID, localIPs []net.IP) (Direction, error) {
 	for _, local := range localIPs {
 		if ID.SrcIP == local.String() {
-			dir = s2c
-			break
+			return S2C, nil
 		}
 		if ID.DstIP == local.String() {
-			dir = c2s
-			break
+			return C2S, nil
 		}
 	}
-
-	var src, dst *api.Annotations
-	switch dir {
-	case s2c:
-		src = &ann.Server
-		dst = &ann.Client
-	case c2s:
-		src = &ann.Client
-		dst = &ann.Server
-	case unknown:
-		return nil, nil, fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)
-	}
-
-	return src, dst, nil
+	return Unknown, fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)
 }
