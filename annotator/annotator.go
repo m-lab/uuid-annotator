@@ -64,32 +64,37 @@ type Network struct {
 	CIDR     string `json:",omitempty"` // The IP prefix found in the RouteView data.
 	ASNumber uint32 `json:",omitempty"` // First AS number.
 	ASName   string `json:",omitempty"` // Place holder for AS name.
-	Missing  bool   // True when the ASN data is missing from RouteView.
+	Missing  bool   `json:",omitempty"` // True when the ASN data is missing from RouteView.
 
 	// Systems may contain data for Multi-Origin ASNs. Typically, RouteView
 	// records a single ASN per netblock.
 	Systems []System `json:",omitempty"`
 }
 
-// Annotation wraps client- and server-specific annotation types.
-type Annotation interface {
-	GetGeo() *Geolocation
-	GetNetwork() *Network
+func (n *Network) FirstASN() uint32 {
+	if n.Systems == nil || len(n.Systems) == 0 {
+		return 0
+	}
+	s0 := n.Systems[0]
+	if len(s0.ASNs) == 0 {
+		return 0
+	}
+	return s0.ASNs[0]
 }
 
 // ClientAnnotations are client-specific fields for annotation metadata with
 // pointers to geo location and ASN data.
 type ClientAnnotations struct {
-	Geo     *Geolocation // Holds the Client geolocation data
-	Network *Network     // Holds the Autonomous System data.
+	Geo     *Geolocation `json:",omitempty"` // Holds the Client geolocation data
+	Network *Network     `json:",omitempty"` // Holds the Autonomous System data.
 }
 
 // ServerAnnotations are server-specific fields populated by the uuid-annotator.
 type ServerAnnotations struct {
-	Site    string       // M-Lab site, i.e. lga01, yyz02, etc.
-	Machine string       // Specific M-Lab machine at a site, i.e. "mlab1", "mlab2", etc.
-	Geo     *Geolocation // Holds the Server geolocation data.
-	Network *Network     // Holds the Autonomous System data.
+	Site    string       `json:",omitempty"` // M-Lab site, i.e. lga01, yyz02, etc.
+	Machine string       `json:",omitempty"` // Specific M-Lab machine at a site, i.e. "mlab1", "mlab2", etc.
+	Geo     *Geolocation `json:",omitempty"` // Holds the Server geolocation data.
+	Network *Network     `json:",omitempty"` // Holds the Autonomous System data.
 }
 
 // Annotations contains the standard columns we would like to add as annotations for every UUID.
@@ -115,6 +120,8 @@ const (
 	Unknown Direction = iota
 	S2C
 	C2S
+	DstIsClient
+	SrcIsClient
 )
 
 // FindDirection determines whether the IPs in the given ID map to the server or client annotations.
@@ -122,10 +129,10 @@ const (
 func FindDirection(ID *inetdiag.SockID, localIPs []net.IP) (Direction, error) {
 	for _, local := range localIPs {
 		if ID.SrcIP == local.String() {
-			return S2C, nil
+			return DstIsClient, nil
 		}
 		if ID.DstIP == local.String() {
-			return C2S, nil
+			return SrcIsClient, nil
 		}
 	}
 	return Unknown, fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)
