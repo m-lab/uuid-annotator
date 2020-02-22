@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/m-lab/annotation-service/api"
@@ -14,7 +15,9 @@ import (
 	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
-var rv IPNetSlice
+var rv *Index
+var rvF *FIndex
+var rvS *SIndex
 var an api.Annotator
 
 func init() {
@@ -25,6 +28,12 @@ func init() {
 	b2, err := rawfile.FromGZ(b)
 	rtx.Must(err, "Failed to decompress routeview")
 	rv = ParseRouteView(b2)
+	rvF = FParseRouteView(b2)
+	rvS = SParseRouteView(b2)
+
+	runtime.GC()
+
+	fmt.Println("size:", len(rv.n), cap(rv.n))
 
 	an, err = asn.LoadASNDatasetFromReader(bytes.NewBuffer(b2))
 	rtx.Must(err, "Failed to load api.Annotator")
@@ -50,18 +59,51 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func BenchmarkSearchF(b *testing.B) {
+	found := 0
+	missing := 0
+	src := "1.0.192.1"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r, err := rvF.Search(src)
+		if err != nil {
+			missing++
+		} else {
+			found++
+		}
+		_ = ParseSystems(r.Systems)
+	}
+	fmt.Println("f:", found, "m:", missing)
+}
+func BenchmarkSearchS(b *testing.B) {
+	found := 0
+	missing := 0
+	src := "1.0.192.1"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := rvS.Search(src)
+		if err != nil {
+			missing++
+		} else {
+			found++
+		}
+		// _ = ParseSystems(*r.Systems)
+	}
+	fmt.Println("f:", found, "m:", missing)
+}
 func BenchmarkSearch(b *testing.B) {
 	found := 0
 	missing := 0
 	src := "1.0.192.1"
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := Search(rv, src)
+		r, err := rv.Search(src)
 		if err != nil {
 			missing++
 		} else {
 			found++
 		}
+		_ = ParseSystems(*r.Systems)
 	}
 	fmt.Println("f:", found, "m:", missing)
 }
@@ -99,7 +141,7 @@ func TrySearch(n IPNetSlice) {
 		{src: "9.9.0.1"},
 	}
 	for _, t := range tests {
-		r, err := Search(n, t.src)
+		r, err := rv.Search(t.src)
 		fmt.Println("found:", r, err)
 	}
 
