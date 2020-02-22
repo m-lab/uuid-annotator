@@ -20,14 +20,15 @@ var (
 )
 
 // The Geolocation struct contains all the information needed for the
-// geolocation data that will be inserted into big query. The fields are
-// capitalized for exporting, although the originals in the DB schema
-// are not.
+// geolocation MaxMind Geo1 and Geo2 data used to annotate BigQuery rows.
+//
 // This is in common because it is used by the etl repository.
 type Geolocation struct {
 	ContinentCode string `json:",omitempty"` // Gives a shorthand for the continent
 	CountryCode   string `json:",omitempty"` // Gives a shorthand for the country
+	CountryCode3  string `json:",omitempty"` // Gives a shorthand for the country (Geo1)
 	CountryName   string `json:",omitempty"` // Name of the country
+	Region        string `json:",omitempty"` // Region or State within the country (Geo1)
 
 	// Subdivision fields are provided by MaxMind Geo2 format and used by uuid-annotator.
 	Subdivision1ISOCode string `json:",omitempty"`
@@ -38,25 +39,30 @@ type Geolocation struct {
 	MetroCode        int64   `json:",omitempty"` // Metro code within the country
 	City             string  `json:",omitempty"` // City within the region
 	PostalCode       string  `json:",omitempty"` // Postal code, again similar to metro
+	AreaCode         int64   `json:",omitempty"` // Area code, similar to metro code (Geo1)
 	Latitude         float64 `json:",omitempty"` // Latitude
 	Longitude        float64 `json:",omitempty"` // Longitude
-	AccuracyRadiusKm int64   `json:",omitempty"` // Accuracy Radius (geolite2 from 2018)
+	AccuracyRadiusKm int64   `json:",omitempty"` // Accuracy Radius (Geo2 since 2018)
 }
 
-// A System is the base element. It may contain a single ASN, or multiple ASNs
+// We currently use CAIDA RouteView data to populate ASN annotations.
+// See documentation at:
+// http://data.caida.org/datasets/routing/routeviews-prefix2as/README.txt
+
+// A System is the base element. It may contain a single ASN or multiple ASNs
 // comprising an AS set.
 type System struct {
 	// ASNs contains a single ASN, or AS set. There must always be at least one
-	// ASN. If there are more than one ASN, they are (arbitrarily) listed in
-	// increasing numerical order.
+	// ASN. If there are more than one ASN, they will be listed in the same order
+	// as RouteView.
 	ASNs []uint32
 }
 
 // Network contains the Autonomous System information associated with the IP prefix.
 // Roughly 99% of mappings consist of a single System with a single ASN.
 type Network struct {
-	CIDR     string `json:",omitempty"` // the IP prefix found in the RouteView data.
-	ASNumber uint32 `json:",omitempty"` // Most common AS number.
+	CIDR     string `json:",omitempty"` // The IP prefix found in the RouteView data.
+	ASNumber uint32 `json:",omitempty"` // First AS number.
 	ASName   string `json:",omitempty"` // Place holder for AS name.
 	Missing  bool   // True when the ASN data is missing from RouteView.
 
