@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -12,16 +13,23 @@ import (
 	"strings"
 
 	"github.com/m-lab/uuid-annotator/annotator"
+	"github.com/xorcare/pointer"
 )
 
 // IPNet represents a parsed row in a RouteView file.
 type IPNet struct {
 	net.IPNet
-	Systems []annotator.System
+	Systems *string
+	// Systems []annotator.System
+	// Systems string
 }
 
 // IPNetSlice is a sortable (and searchable) array of IPNets.
 type IPNetSlice []IPNet
+
+type Index struct {
+	n IPNetSlice
+}
 
 func (p IPNetSlice) Len() int {
 	return len(p)
@@ -64,12 +72,15 @@ func ParseSystems(s string) []annotator.System {
 }
 
 // ParseRouteView reads the given csv file and generates a sorted IP list.
-func ParseRouteView(file []byte) IPNetSlice {
+func ParseRouteView(file []byte) *Index {
 	result := IPNetSlice{}
+	sm := map[string]*string{}
 
+	skip := 0
 	b := bytes.NewBuffer(file)
 	r := csv.NewReader(b)
 	r.Comma = '\t'
+	r.ReuseRecord = true
 
 	for {
 		record, err := r.Read()
@@ -80,35 +91,44 @@ func ParseRouteView(file []byte) IPNetSlice {
 			continue
 		}
 		_, n, err := net.ParseCIDR(record[0] + "/" + record[1])
-		result = append(result, IPNet{IPNet: *n, Systems: ParseSystems(record[2])})
+		if _, ok := sm[record[2]]; !ok {
+			// break string connection to underlying csv reader ram.
+			sm[record[2]] = pointer.String(string([]byte(record[2])))
+		}
+		if len(result) > 1 && result[len(result)-1].Contains(n.IP) && *(result[len(result)-1].Systems) == record[2] {
+			// If the last thing contains the current one witht he same systems, skip it.
+			skip++
+			continue
+		}
+		result = append(result, IPNet{IPNet: *n, Systems: sm[record[2]]})
 	}
+	fmt.Println("skip:", skip)
 
 	// Sort list so that it can be searched.
 	sort.Sort(result)
-	return result
+	return &Index{n: result}
 }
 
 // ErrNoASNFound is returned when search fails to identify a network for the given src IP.
 var ErrNoASNFound = errors.New("No ASN found for address")
 
 // Search attempts to find the given src IP in n.
-func Search(n IPNetSlice, src string) (IPNet, error) {
+func (rv *Index) Search(src string) (IPNet, error) {
 	// bytes.Compare will only work correctly when both net.IPs have the same byte count.
 	ip := net.ParseIP(src)
 	if ip.To4() != nil {
 		ip = ip.To4()
 	}
-	x := sort.Search(len(n), func(i int) bool {
-		// fmt.Println("s:", ip, i, n[i], bytes.Compare(ip, n[i].IP) >= 0, n[i].Contains(ip))
-		if n[i].Contains(ip) {
+	x := sort.Search(len(rv.n), func(i int) bool {
+		if rv.n[i].Contains(ip) {
 			// Becaue sort.Search finds the lowest index where f(i) is true, we must return
 			// true when the IPNet contains the given IP to prevent off by 1 errors.
 			return true
 		}
-		return bytes.Compare(n[i].IP, ip) >= 0
+		return bytes.Compare(rv.n[i].IP, ip) >= 0
 	})
-	if n[x].Contains(ip) {
-		return n[x], nil
+	if x < len(rv.n) && rv.n[x].Contains(ip) {
+		return rv.n[x], nil
 	}
 	return IPNet{}, ErrNoASNFound
 }
