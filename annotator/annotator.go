@@ -26,9 +26,9 @@ var (
 type Geolocation struct {
 	ContinentCode string `json:",omitempty"` // Gives a shorthand for the continent
 	CountryCode   string `json:",omitempty"` // Gives a shorthand for the country
-	CountryCode3  string `json:",omitempty"` // Gives a shorthand for the country (Geo1)
+	CountryCode3  string `json:",omitempty"` // Geo1: Gives a shorthand for the country
 	CountryName   string `json:",omitempty"` // Name of the country
-	Region        string `json:",omitempty"` // Region or State within the country (Geo1)
+	Region        string `json:",omitempty"` // Geo1: Region or State within the country
 
 	// Subdivision fields are provided by MaxMind Geo2 format and used by uuid-annotator.
 	Subdivision1ISOCode string `json:",omitempty"`
@@ -38,11 +38,11 @@ type Geolocation struct {
 
 	MetroCode        int64   `json:",omitempty"` // Metro code within the country
 	City             string  `json:",omitempty"` // City within the region
+	AreaCode         int64   `json:",omitempty"` // Geo1: Area code, similar to metro code
 	PostalCode       string  `json:",omitempty"` // Postal code, again similar to metro
-	AreaCode         int64   `json:",omitempty"` // Area code, similar to metro code (Geo1)
 	Latitude         float64 `json:",omitempty"` // Latitude
 	Longitude        float64 `json:",omitempty"` // Longitude
-	AccuracyRadiusKm int64   `json:",omitempty"` // Accuracy Radius (Geo2 since 2018)
+	AccuracyRadiusKm int64   `json:",omitempty"` // Geo2: Accuracy Radius (since 2018)
 }
 
 // We currently use CAIDA RouteView data to populate ASN annotations.
