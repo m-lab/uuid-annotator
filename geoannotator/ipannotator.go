@@ -40,9 +40,9 @@ func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	}
 
 	switch dir {
-	case annotator.SrcIsClient:
+	case annotator.DstIsServer:
 		err = g.annotate(ID.SrcIP, &annotations.Client.Geo)
-	case annotator.DstIsClient:
+	case annotator.SrcIsServer:
 		err = g.annotate(ID.DstIP, &annotations.Client.Geo)
 	}
 	if err != nil {

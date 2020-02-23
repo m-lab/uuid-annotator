@@ -118,10 +118,8 @@ type Direction int
 // Specific directions.
 const (
 	Unknown Direction = iota
-	S2C
-	C2S
-	DstIsClient
-	SrcIsClient
+	SrcIsServer
+	DstIsServer
 )
 
 // FindDirection determines whether the IPs in the given ID map to the server or client annotations.
@@ -129,10 +127,10 @@ const (
 func FindDirection(ID *inetdiag.SockID, localIPs []net.IP) (Direction, error) {
 	for _, local := range localIPs {
 		if ID.SrcIP == local.String() {
-			return DstIsClient, nil
+			return SrcIsServer, nil
 		}
 		if ID.DstIP == local.String() {
-			return SrcIsClient, nil
+			return DstIsServer, nil
 		}
 	}
 	return Unknown, fmt.Errorf("Can't annotate connection: Unknown direction for %+v", ID)

@@ -31,7 +31,7 @@ func TestFindDirection(t *testing.T) {
 			localIPs: []net.IP{
 				net.ParseIP("1.0.0.1"),
 			},
-			want: DstIsClient,
+			want: SrcIsServer,
 		},
 		{
 			name: "success-dst-is-server",
@@ -42,7 +42,7 @@ func TestFindDirection(t *testing.T) {
 			localIPs: []net.IP{
 				net.ParseIP("1.0.0.1"),
 			},
-			want: SrcIsClient,
+			want: DstIsServer,
 		},
 		{
 			name: "error-unknown-direction",

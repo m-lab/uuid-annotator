@@ -57,10 +57,10 @@ func (a *asnAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	}
 
 	switch dir {
-	case annotator.SrcIsClient:
+	case annotator.DstIsServer:
 		annotations.Client.Network = a.annotate(ID.SrcIP)
 		// annotations.Server.Network = a.annotate(ID.DstIP)
-	case annotator.DstIsClient:
+	case annotator.SrcIsServer:
 		annotations.Client.Network = a.annotate(ID.DstIP)
 		// annotations.Server.Network = a.annotate(ID.SrcIP)
 	}

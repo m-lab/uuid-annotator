@@ -51,9 +51,9 @@ func (g *srvannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	}
 
 	switch dir {
-	case annotator.SrcIsClient:
+	case annotator.DstIsServer:
 		err = g.annotate(ID.DstIP, &annotations.Server)
-	case annotator.DstIsClient:
+	case annotator.SrcIsServer:
 		err = g.annotate(ID.SrcIP, &annotations.Server)
 	}
 	if err != nil {
