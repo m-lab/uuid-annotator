@@ -93,6 +93,9 @@ func (g *srvannotator) load(ctx context.Context) (*annotator.ServerAnnotations, 
 		return nil, err
 	}
 	f := strings.Split(g.hostname, ".")
+	if len(f) < 2 {
+		return nil, ErrNotFound
+	}
 	site := f[1]
 	for i := range s {
 		if s[i].Site == site {
