@@ -6,8 +6,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
@@ -104,7 +106,35 @@ func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 		return &fileProvider{
 			filename: u.Opaque,
 		}, nil
+
+	case "https":
+		return &httpsProvider{
+			u:       *u,
+			timeout: time.Minute,
+			client:  http.DefaultClient,
+		}, nil
 	default:
 		return nil, ErrUnsupportedURLScheme
 	}
+}
+
+type httpsProvider struct {
+	u       url.URL
+	timeout time.Duration
+	client  *http.Client
+}
+
+func (h *httpsProvider) Get(ctx context.Context) ([]byte, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, h.timeout)
+	defer cancel()
+	r, err := http.NewRequestWithContext(reqCtx, http.MethodGet, h.u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := h.client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
 }
