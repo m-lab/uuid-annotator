@@ -88,6 +88,7 @@ func (f *fileProvider) Get(ctx context.Context) ([]byte, error) {
 // eliminate a runtime dependency on a third party service.
 func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 	switch u.Scheme {
+	// TODO: add case "https": to support siteinfo annotations.
 	case "gs":
 		client, err := storage.NewClient(ctx)
 		filename := strings.TrimPrefix(u.Path, "/")
