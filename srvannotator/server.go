@@ -10,17 +10,11 @@ import (
 	"sync"
 
 	"github.com/m-lab/go/rtx"
-	"github.com/oschwald/geoip2-golang"
 
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
 )
-
-// Annotator is just a regular annotator with a Reload method.
-type Annotator interface {
-	annotator.Annotator
-}
 
 // srvannotator is the central struct for this module.
 type srvannotator struct {
@@ -29,6 +23,21 @@ type srvannotator struct {
 	backingDataSource rawfile.Provider
 	hostname          string
 	server            *annotator.ServerAnnotations
+}
+
+var ErrNotFound = errors.New("Not Found")
+
+// New makes a new server Annotator using metadata from siteinfo JSON.
+func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []net.IP) annotator.Annotator {
+	g := &srvannotator{
+		backingDataSource: js,
+		hostname:          hostname,
+		localIPs:          localIPs,
+	}
+	var err error
+	g.server, err = g.load(ctx)
+	rtx.Must(err, "Could not load annotation db")
+	return g
 }
 
 // Annotate puts into geolocation data and ASN data into the passed-in annotations map.
@@ -46,24 +55,12 @@ func (g *srvannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 		err = g.annotate(ID.DstIP, &annotations.Server)
 	case annotator.DstIsClient:
 		err = g.annotate(ID.SrcIP, &annotations.Server)
-	default:
-		return fmt.Errorf("Could not annotate ip (%s): %w", err.Error(), annotator.ErrNoAnnotation)
 	}
-
-	// var errs []error
-	// errs = append(errs, g.annotate(ID.SrcIP, src))
-	// errs = append(errs, g.annotate(ID.DstIP, dst))
-
-	// Return the first error (if any).
-	// for _, e := range errs {
 	if err != nil {
 		return fmt.Errorf("Could not annotate ip: %w", err)
 	}
-	// }
 	return nil
 }
-
-var emptyResult = geoip2.City{}
 
 func (g *srvannotator) annotate(src string, server *annotator.ServerAnnotations) error {
 	ip := net.ParseIP(src)
@@ -74,12 +71,6 @@ func (g *srvannotator) annotate(src string, server *annotator.ServerAnnotations)
 	*server = *g.server
 	return nil
 }
-
-func isEmpty(r *geoip2.City) bool {
-	return r.City.GeoNameID == 0 && r.Country.GeoNameID == 0 && r.Continent.GeoNameID == 0
-}
-
-var ErrNotFound = errors.New("Not Found")
 
 // load unconditionally loads datasets and returns them.
 func (g *srvannotator) load(ctx context.Context) (*annotator.ServerAnnotations, error) {
@@ -99,21 +90,9 @@ func (g *srvannotator) load(ctx context.Context) (*annotator.ServerAnnotations, 
 	site := f[1]
 	for i := range s {
 		if s[i].Site == site {
+			s[i].Machine = f[0]
 			return &s[i], nil
 		}
 	}
 	return nil, ErrNotFound
-}
-
-// New makes a new server Annotator using metadata from siteinfo JSON.
-func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []net.IP) Annotator {
-	g := &srvannotator{
-		backingDataSource: js,
-		hostname:          hostname,
-		localIPs:          localIPs,
-	}
-	var err error
-	g.server, err = g.load(ctx)
-	rtx.Must(err, "Could not load annotation db")
-	return g
 }
