@@ -1,0 +1,3060 @@
+[
+   {
+      "Geo": {
+         "City": "Auckland",
+         "ContinentCode": "OC",
+         "CountryCode": "NZ",
+         "Latitude": -36.85,
+         "Longitude": 174.783,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "REANNZ National Research and Education Network",
+         "ASNumber": 38022,
+         "Systems": [
+            {
+               "ASNs": [
+                  38022
+               ]
+            }
+         ]
+      },
+      "Site": "akl01"
+   },
+   {
+      "Geo": {
+         "City": "Amsterdam",
+         "ContinentCode": "EU",
+         "CountryCode": "NL",
+         "Latitude": 52.3086,
+         "Longitude": 4.7639,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "ams03"
+   },
+   {
+      "Geo": {
+         "City": "Amsterdam",
+         "ContinentCode": "EU",
+         "CountryCode": "NL",
+         "Latitude": 52.3086,
+         "Longitude": 4.7639,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "ams04"
+   },
+   {
+      "Geo": {
+         "City": "Amsterdam",
+         "ContinentCode": "EU",
+         "CountryCode": "NL",
+         "Latitude": 52.3086,
+         "Longitude": 4.7639,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "ams05"
+   },
+   {
+      "Geo": {
+         "City": "Amsterdam",
+         "ContinentCode": "EU",
+         "CountryCode": "NL",
+         "Latitude": 52.3086,
+         "Longitude": 4.7639,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "ams08"
+   },
+   {
+      "Geo": {
+         "City": "Stockholm",
+         "ContinentCode": "EU",
+         "CountryCode": "SE",
+         "Latitude": 59.6519,
+         "Longitude": 17.9186,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "arn02"
+   },
+   {
+      "Geo": {
+         "City": "Stockholm",
+         "ContinentCode": "EU",
+         "CountryCode": "SE",
+         "Latitude": 59.6519,
+         "Longitude": 17.9186,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "arn03"
+   },
+   {
+      "Geo": {
+         "City": "Stockholm",
+         "ContinentCode": "EU",
+         "CountryCode": "SE",
+         "Latitude": 59.6519,
+         "Longitude": 17.9186,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "arn04"
+   },
+   {
+      "Geo": {
+         "City": "Stockholm",
+         "ContinentCode": "EU",
+         "CountryCode": "SE",
+         "Latitude": 59.6519,
+         "Longitude": 17.9186,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "arn05"
+   },
+   {
+      "Geo": {
+         "City": "Stockholm",
+         "ContinentCode": "EU",
+         "CountryCode": "SE",
+         "Latitude": 59.6519,
+         "Longitude": 17.9186,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "arn06"
+   },
+   {
+      "Geo": {
+         "City": "Athens",
+         "ContinentCode": "EU",
+         "CountryCode": "GR",
+         "Latitude": 37.9364,
+         "Longitude": 23.9444,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Hellenic Telecommunications and Post Commision",
+         "ASNumber": 203348,
+         "Systems": [
+            {
+               "ASNs": [
+                  203348
+               ]
+            }
+         ]
+      },
+      "Site": "ath03"
+   },
+   {
+      "Geo": {
+         "City": "Atlanta",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.6367,
+         "Longitude": -84.4281,
+         "State": "GA"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "atl02"
+   },
+   {
+      "Geo": {
+         "City": "Atlanta",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.6367,
+         "Longitude": -84.4281,
+         "State": "GA"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "atl03"
+   },
+   {
+      "Geo": {
+         "City": "Atlanta",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.6367,
+         "Longitude": -84.4281,
+         "State": "GA"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "atl04"
+   },
+   {
+      "Geo": {
+         "City": "Atlanta",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.6367,
+         "Longitude": -84.4281,
+         "State": "GA"
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "atl07"
+   },
+   {
+      "Geo": {
+         "City": "Atlanta",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.6367,
+         "Longitude": -84.4281,
+         "State": "GA"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "atl08"
+   },
+   {
+      "Geo": {
+         "City": "Barcelona",
+         "ContinentCode": "EU",
+         "CountryCode": "ES",
+         "Latitude": 41.2974,
+         "Longitude": 2.0811,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Consorci de Serveis Universitaris de Catalunya",
+         "ASNumber": 49638,
+         "Systems": [
+            {
+               "ASNs": [
+                  49638
+               ]
+            }
+         ]
+      },
+      "Site": "bcn01"
+   },
+   {
+      "Geo": {
+         "City": "Belgrade",
+         "ContinentCode": "EU",
+         "CountryCode": "RS",
+         "Latitude": 44.8216,
+         "Longitude": 20.2921,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Serbian Open Exchange DOO",
+         "ASNumber": 13004,
+         "Systems": [
+            {
+               "ASNs": [
+                  13004
+               ]
+            }
+         ]
+      },
+      "Site": "beg01"
+   },
+   {
+      "Geo": {
+         "City": "Mumbai",
+         "ContinentCode": "AS",
+         "CountryCode": "IN",
+         "Latitude": 19.0886,
+         "Longitude": 72.8681,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "BHARTI Airtel Ltd.",
+         "ASNumber": 9498,
+         "Systems": [
+            {
+               "ASNs": [
+                  9498
+               ]
+            }
+         ]
+      },
+      "Site": "bom01"
+   },
+   {
+      "Geo": {
+         "City": "Mumbai",
+         "ContinentCode": "AS",
+         "CountryCode": "IN",
+         "Latitude": 19.0886,
+         "Longitude": 72.8681,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA Communications formerly VSNL is Leading ISP",
+         "ASNumber": 4755,
+         "Systems": [
+            {
+               "ASNs": [
+                  4755
+               ]
+            }
+         ]
+      },
+      "Site": "bom02"
+   },
+   {
+      "Geo": {
+         "City": "Brussels",
+         "ContinentCode": "EU",
+         "CountryCode": "BE",
+         "Latitude": 50.4974,
+         "Longitude": 3.3528,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "bru01"
+   },
+   {
+      "Geo": {
+         "City": "Brussels",
+         "ContinentCode": "EU",
+         "CountryCode": "BE",
+         "Latitude": 50.4974,
+         "Longitude": 3.3528,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "bru02"
+   },
+   {
+      "Geo": {
+         "City": "Brussels",
+         "ContinentCode": "EU",
+         "CountryCode": "BE",
+         "Latitude": 50.4974,
+         "Longitude": 3.3528,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "bru03"
+   },
+   {
+      "Geo": {
+         "City": "Brussels",
+         "ContinentCode": "EU",
+         "CountryCode": "BE",
+         "Latitude": 50.4974,
+         "Longitude": 3.3528,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "bru04"
+   },
+   {
+      "Geo": {
+         "City": "Cape",
+         "ContinentCode": "AF",
+         "CountryCode": "ZA",
+         "Latitude": -33.9724,
+         "Longitude": 18.6018,
+         "State": "Town"
+      },
+      "Network": {
+         "ASName": "TENET (The UNINET Project)",
+         "ASNumber": 2018,
+         "Systems": [
+            {
+               "ASNs": [
+                  2018
+               ]
+            }
+         ]
+      },
+      "Site": "cpt01"
+   },
+   {
+      "Geo": {
+         "City": "New Delhi",
+         "ContinentCode": "AS",
+         "CountryCode": "IN",
+         "Latitude": 28.5562,
+         "Longitude": 77.1,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA Communications formerly VSNL is Leading ISP",
+         "ASNumber": 4755,
+         "Systems": [
+            {
+               "ASNs": [
+                  4755
+               ]
+            }
+         ]
+      },
+      "Site": "del01"
+   },
+   {
+      "Geo": {
+         "City": "New Delhi",
+         "ContinentCode": "AS",
+         "CountryCode": "IN",
+         "Latitude": 28.5562,
+         "Longitude": 77.1,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "BHARTI Airtel Ltd.",
+         "ASNumber": 9498,
+         "Systems": [
+            {
+               "ASNs": [
+                  9498
+               ]
+            }
+         ]
+      },
+      "Site": "del02"
+   },
+   {
+      "Geo": {
+         "City": "Denver",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 39.8561,
+         "Longitude": -104.6737,
+         "State": "CO"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "den02"
+   },
+   {
+      "Geo": {
+         "City": "Denver",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 39.8561,
+         "Longitude": -104.6737,
+         "State": "CO"
+      },
+      "Network": {
+         "ASName": "Zayo Bandwidth",
+         "ASNumber": 6461,
+         "Systems": [
+            {
+               "ASNs": [
+                  6461
+               ]
+            }
+         ]
+      },
+      "Site": "den04"
+   },
+   {
+      "Geo": {
+         "City": "Denver",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 39.8561,
+         "Longitude": -104.6737,
+         "State": "CO"
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "den05"
+   },
+   {
+      "Geo": {
+         "City": "Denver",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 39.8561,
+         "Longitude": -104.6737,
+         "State": "CO"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "den06"
+   },
+   {
+      "Geo": {
+         "City": "Dallas",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 32.8969,
+         "Longitude": -97.0381,
+         "State": "TX"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "dfw02"
+   },
+   {
+      "Geo": {
+         "City": "Dallas",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 32.8969,
+         "Longitude": -97.0381,
+         "State": "TX"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "dfw03"
+   },
+   {
+      "Geo": {
+         "City": "Dallas",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 32.8969,
+         "Longitude": -97.0381,
+         "State": "TX"
+      },
+      "Network": {
+         "ASName": "Zayo Bandwidth",
+         "ASNumber": 6461,
+         "Systems": [
+            {
+               "ASNs": [
+                  6461
+               ]
+            }
+         ]
+      },
+      "Site": "dfw05"
+   },
+   {
+      "Geo": {
+         "City": "Dallas",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 32.8969,
+         "Longitude": -97.0381,
+         "State": "TX"
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "dfw07"
+   },
+   {
+      "Geo": {
+         "City": "Dallas",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 32.8969,
+         "Longitude": -97.0381,
+         "State": "TX"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "dfw08"
+   },
+   {
+      "Geo": {
+         "City": "Dublin",
+         "ContinentCode": "EU",
+         "CountryCode": "IE",
+         "Latitude": 53.4333,
+         "Longitude": -6.25,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "HEAnet Limited",
+         "ASNumber": 1213,
+         "Systems": [
+            {
+               "ASNs": [
+                  1213
+               ]
+            }
+         ]
+      },
+      "Site": "dub01"
+   },
+   {
+      "Geo": {
+         "City": "Florianopolis",
+         "ContinentCode": "SA",
+         "CountryCode": "BR",
+         "Latitude": -27.6685,
+         "Longitude": -48.546,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Universidade Federal de Santa Catarina",
+         "ASNumber": 11242,
+         "Systems": [
+            {
+               "ASNs": [
+                  11242
+               ]
+            }
+         ]
+      },
+      "Site": "fln01"
+   },
+   {
+      "Geo": {
+         "City": "Frankfurt",
+         "ContinentCode": "EU",
+         "CountryCode": "DE",
+         "Latitude": 50.0379,
+         "Longitude": 8.5622,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "fra01"
+   },
+   {
+      "Geo": {
+         "City": "Frankfurt",
+         "ContinentCode": "EU",
+         "CountryCode": "DE",
+         "Latitude": 50.0379,
+         "Longitude": 8.5622,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "fra02"
+   },
+   {
+      "Geo": {
+         "City": "Frankfurt",
+         "ContinentCode": "EU",
+         "CountryCode": "DE",
+         "Latitude": 50.0379,
+         "Longitude": 8.5622,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "fra03"
+   },
+   {
+      "Geo": {
+         "City": "Frankfurt",
+         "ContinentCode": "EU",
+         "CountryCode": "DE",
+         "Latitude": 50.0379,
+         "Longitude": 8.5622,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "fra04"
+   },
+   {
+      "Geo": {
+         "City": "Frankfurt",
+         "ContinentCode": "EU",
+         "CountryCode": "DE",
+         "Latitude": 50.0379,
+         "Longitude": 8.5622,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "fra05"
+   },
+   {
+      "Geo": {
+         "City": "Sao Paulo",
+         "ContinentCode": "SA",
+         "CountryCode": "BR",
+         "Latitude": -23.4305,
+         "Longitude": -46.473,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3549,
+         "Systems": [
+            {
+               "ASNs": [
+                  3549
+               ]
+            }
+         ]
+      },
+      "Site": "gru01"
+   },
+   {
+      "Geo": {
+         "City": "Sao Paulo",
+         "ContinentCode": "SA",
+         "CountryCode": "BR",
+         "Latitude": -23.4305,
+         "Longitude": -46.473,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "INTERNEXA BRASIL OPERADORA DE TELECOMUNICACOES S.A",
+         "ASNumber": 262589,
+         "Systems": [
+            {
+               "ASNs": [
+                  262589
+               ]
+            }
+         ]
+      },
+      "Site": "gru02"
+   },
+   {
+      "Geo": {
+         "City": "Sao Paulo",
+         "ContinentCode": "SA",
+         "CountryCode": "BR",
+         "Latitude": -23.4305,
+         "Longitude": -46.473,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TELECOM ITALIA SPARKLE S.p.A.",
+         "ASNumber": 6762,
+         "Systems": [
+            {
+               "ASNs": [
+                  6762
+               ]
+            }
+         ]
+      },
+      "Site": "gru03"
+   },
+   {
+      "Geo": {
+         "City": "Sao Paulo",
+         "ContinentCode": "SA",
+         "CountryCode": "BR",
+         "Latitude": -23.4305,
+         "Longitude": -46.473,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telefonica International Wholesale Services",
+         "ASNumber": 12956,
+         "Systems": [
+            {
+               "ASNs": [
+                  12956
+               ]
+            }
+         ]
+      },
+      "Site": "gru04"
+   },
+   {
+      "Geo": {
+         "City": "Hamburg",
+         "ContinentCode": "EU",
+         "CountryCode": "DE",
+         "Latitude": 53.6333,
+         "Longitude": 9.9833,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "ham02"
+   },
+   {
+      "Geo": {
+         "City": "Hong Kong",
+         "ContinentCode": "AS",
+         "CountryCode": "HK",
+         "Latitude": 22.3089,
+         "Longitude": 113.9144,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "HK Broadband Network Ltd.",
+         "ASNumber": 10103,
+         "Systems": [
+            {
+               "ASNs": [
+                  10103
+               ]
+            }
+         ]
+      },
+      "Site": "hkg01"
+   },
+   {
+      "Geo": {
+         "City": "Hong Kong",
+         "ContinentCode": "AS",
+         "CountryCode": "HK",
+         "Latitude": 22.3089,
+         "Longitude": 113.9144,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Netherlands B.V.",
+         "ASNumber": 5580,
+         "Systems": [
+            {
+               "ASNs": [
+                  5580
+               ]
+            }
+         ]
+      },
+      "Site": "hkg02"
+   },
+   {
+      "Geo": {
+         "City": "Tokyo",
+         "ContinentCode": "AS",
+         "CountryCode": "JP",
+         "Latitude": 35.5522,
+         "Longitude": 139.78,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "WIDE Project",
+         "ASNumber": 2500,
+         "Systems": [
+            {
+               "ASNs": [
+                  2500
+               ]
+            }
+         ]
+      },
+      "Site": "hnd01"
+   },
+   {
+      "Geo": {
+         "City": "Tokyo",
+         "ContinentCode": "AS",
+         "CountryCode": "JP",
+         "Latitude": 35.5522,
+         "Longitude": 139.78,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "BIGLOBE Inc.",
+         "ASNumber": 2518,
+         "Systems": [
+            {
+               "ASNs": [
+                  2518
+               ]
+            }
+         ]
+      },
+      "Site": "hnd02"
+   },
+   {
+      "Geo": {
+         "City": "Tokyo",
+         "ContinentCode": "AS",
+         "CountryCode": "JP",
+         "Latitude": 35.5522,
+         "Longitude": 139.78,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "KDDI Corporation",
+         "ASNumber": 2516,
+         "Systems": [
+            {
+               "ASNs": [
+                  2516
+               ]
+            }
+         ]
+      },
+      "Site": "hnd03"
+   },
+   {
+      "Geo": {
+         "City": "Tokyo",
+         "ContinentCode": "AS",
+         "CountryCode": "JP",
+         "Latitude": 35.5522,
+         "Longitude": 139.78,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "hnd04"
+   },
+   {
+      "Geo": {
+         "City": "Washington",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 38.9444,
+         "Longitude": -77.4558,
+         "State": "DC"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "iad02"
+   },
+   {
+      "Geo": {
+         "City": "Washington",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 38.9444,
+         "Longitude": -77.4558,
+         "State": "DC"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "iad03"
+   },
+   {
+      "Geo": {
+         "City": "Washington",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 38.9444,
+         "Longitude": -77.4558,
+         "State": "DC"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "iad04"
+   },
+   {
+      "Geo": {
+         "City": "Washington",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 38.9444,
+         "Longitude": -77.4558,
+         "State": "DC"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "iad05"
+   },
+   {
+      "Geo": {
+         "City": "Washington",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 38.9444,
+         "Longitude": -77.4558,
+         "State": "DC"
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "iad06"
+   },
+   {
+      "Geo": {
+         "City": "Johannesburg",
+         "ContinentCode": "AF",
+         "CountryCode": "ZA",
+         "Latitude": -26.2035,
+         "Longitude": 28.1335,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TENET (The UNINET Project)",
+         "ASNumber": 2018,
+         "Systems": [
+            {
+               "ASNs": [
+                  2018
+               ]
+            }
+         ]
+      },
+      "Site": "jnb01"
+   },
+   {
+      "Geo": {
+         "City": "Los Angeles",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.9425,
+         "Longitude": -118.4072,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "lax02"
+   },
+   {
+      "Geo": {
+         "City": "Los Angeles",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.9425,
+         "Longitude": -118.4072,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "lax03"
+   },
+   {
+      "Geo": {
+         "City": "Los Angeles",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.9425,
+         "Longitude": -118.4072,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "lax04"
+   },
+   {
+      "Geo": {
+         "City": "Los Angeles",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.9425,
+         "Longitude": -118.4072,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "Zayo Bandwidth",
+         "ASNumber": 6461,
+         "Systems": [
+            {
+               "ASNs": [
+                  6461
+               ]
+            }
+         ]
+      },
+      "Site": "lax05"
+   },
+   {
+      "Geo": {
+         "City": "Los Angeles",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 33.9425,
+         "Longitude": -118.4072,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "lax06"
+   },
+   {
+      "Geo": {
+         "City": "New York",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 40.7667,
+         "Longitude": -73.8667,
+         "State": "NY"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "lga03"
+   },
+   {
+      "Geo": {
+         "City": "New York",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 40.7667,
+         "Longitude": -73.8667,
+         "State": "NY"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "lga04"
+   },
+   {
+      "Geo": {
+         "City": "New York",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 40.7667,
+         "Longitude": -73.8667,
+         "State": "NY"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "lga05"
+   },
+   {
+      "Geo": {
+         "City": "New York",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 40.7667,
+         "Longitude": -73.8667,
+         "State": "NY"
+      },
+      "Network": {
+         "ASName": "Zayo Bandwidth",
+         "ASNumber": 6461,
+         "Systems": [
+            {
+               "ASNs": [
+                  6461
+               ]
+            }
+         ]
+      },
+      "Site": "lga06"
+   },
+   {
+      "Geo": {
+         "City": "New York",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 40.7667,
+         "Longitude": -73.8667,
+         "State": "NY"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "lga08"
+   },
+   {
+      "Geo": {
+         "City": "New York",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 40.7667,
+         "Longitude": -73.8667,
+         "State": "NY"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "lga0t"
+   },
+   {
+      "Geo": {
+         "City": "New York",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 40.7667,
+         "Longitude": -73.8667,
+         "State": "NY"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "lga1t"
+   },
+   {
+      "Geo": {
+         "City": "London",
+         "ContinentCode": "EU",
+         "CountryCode": "GB",
+         "Latitude": 51.4697,
+         "Longitude": -0.4514,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "lhr02"
+   },
+   {
+      "Geo": {
+         "City": "London",
+         "ContinentCode": "EU",
+         "CountryCode": "GB",
+         "Latitude": 51.4697,
+         "Longitude": -0.4514,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "lhr03"
+   },
+   {
+      "Geo": {
+         "City": "London",
+         "ContinentCode": "EU",
+         "CountryCode": "GB",
+         "Latitude": 51.4697,
+         "Longitude": -0.4514,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "lhr04"
+   },
+   {
+      "Geo": {
+         "City": "London",
+         "ContinentCode": "EU",
+         "CountryCode": "GB",
+         "Latitude": 51.4697,
+         "Longitude": -0.4514,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "lhr05"
+   },
+   {
+      "Geo": {
+         "City": "London",
+         "ContinentCode": "EU",
+         "CountryCode": "GB",
+         "Latitude": 51.4697,
+         "Longitude": -0.4514,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "lhr06"
+   },
+   {
+      "Geo": {
+         "City": "London",
+         "ContinentCode": "EU",
+         "CountryCode": "GB",
+         "Latitude": 51.4697,
+         "Longitude": -0.4514,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TELECOM ITALIA SPARKLE S.p.A.",
+         "ASNumber": 6762,
+         "Systems": [
+            {
+               "ASNs": [
+                  6762
+               ]
+            }
+         ]
+      },
+      "Site": "lhr07"
+   },
+   {
+      "Geo": {
+         "City": "Lisbon",
+         "ContinentCode": "EU",
+         "CountryCode": "PT",
+         "Latitude": 38.7756,
+         "Longitude": -9.1354,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "lis01"
+   },
+   {
+      "Geo": {
+         "City": "Lisbon",
+         "ContinentCode": "EU",
+         "CountryCode": "PT",
+         "Latitude": 38.7756,
+         "Longitude": -9.1354,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "lis02"
+   },
+   {
+      "Geo": {
+         "City": "Ljubljana",
+         "ContinentCode": "EU",
+         "CountryCode": "SI",
+         "Latitude": 46.2236,
+         "Longitude": 14.4575,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Zavod za IPv6 - go6",
+         "ASNumber": 198644,
+         "Systems": [
+            {
+               "ASNs": [
+                  198644
+               ]
+            }
+         ]
+      },
+      "Site": "lju01"
+   },
+   {
+      "Geo": {
+         "City": "Chennai",
+         "ContinentCode": "AS",
+         "CountryCode": "IN",
+         "Latitude": 12.9941,
+         "Longitude": 80.1709,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA Communications formerly VSNL is Leading ISP",
+         "ASNumber": 4755,
+         "Systems": [
+            {
+               "ASNs": [
+                  4755
+               ]
+            }
+         ]
+      },
+      "Site": "maa01"
+   },
+   {
+      "Geo": {
+         "City": "Chennai",
+         "ContinentCode": "AS",
+         "CountryCode": "IN",
+         "Latitude": 12.9941,
+         "Longitude": 80.1709,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "BHARTI Airtel Ltd.",
+         "ASNumber": 9498,
+         "Systems": [
+            {
+               "ASNs": [
+                  9498
+               ]
+            }
+         ]
+      },
+      "Site": "maa02"
+   },
+   {
+      "Geo": {
+         "City": "Madrid",
+         "ContinentCode": "EU",
+         "CountryCode": "ES",
+         "Latitude": 40.4667,
+         "Longitude": -3.5667,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "mad02"
+   },
+   {
+      "Geo": {
+         "City": "Madrid",
+         "ContinentCode": "EU",
+         "CountryCode": "ES",
+         "Latitude": 40.4667,
+         "Longitude": -3.5667,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "mad03"
+   },
+   {
+      "Geo": {
+         "City": "Madrid",
+         "ContinentCode": "EU",
+         "CountryCode": "ES",
+         "Latitude": 40.4667,
+         "Longitude": -3.5667,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "mad04"
+   },
+   {
+      "Geo": {
+         "City": "Madrid",
+         "ContinentCode": "EU",
+         "CountryCode": "ES",
+         "Latitude": 40.4667,
+         "Longitude": -3.5667,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "mad05"
+   },
+   {
+      "Geo": {
+         "City": "Miami",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 25.7833,
+         "Longitude": -80.2667,
+         "State": "FL"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "mia02"
+   },
+   {
+      "Geo": {
+         "City": "Miami",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 25.7833,
+         "Longitude": -80.2667,
+         "State": "FL"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "mia03"
+   },
+   {
+      "Geo": {
+         "City": "Miami",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 25.7833,
+         "Longitude": -80.2667,
+         "State": "FL"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "mia04"
+   },
+   {
+      "Geo": {
+         "City": "Miami",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 25.7833,
+         "Longitude": -80.2667,
+         "State": "FL"
+      },
+      "Network": {
+         "ASName": "Zayo Bandwidth",
+         "ASNumber": 6461,
+         "Systems": [
+            {
+               "ASNs": [
+                  6461
+               ]
+            }
+         ]
+      },
+      "Site": "mia05"
+   },
+   {
+      "Geo": {
+         "City": "Miami",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 25.7833,
+         "Longitude": -80.2667,
+         "State": "FL"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "mia06"
+   },
+   {
+      "Geo": {
+         "City": "Milan",
+         "ContinentCode": "EU",
+         "CountryCode": "IT",
+         "Latitude": 45.464,
+         "Longitude": 9.1916,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "mil02"
+   },
+   {
+      "Geo": {
+         "City": "Milan",
+         "ContinentCode": "EU",
+         "CountryCode": "IT",
+         "Latitude": 45.464,
+         "Longitude": 9.1916,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "mil03"
+   },
+   {
+      "Geo": {
+         "City": "Milan",
+         "ContinentCode": "EU",
+         "CountryCode": "IT",
+         "Latitude": 45.464,
+         "Longitude": 9.1916,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "mil04"
+   },
+   {
+      "Geo": {
+         "City": "Milan",
+         "ContinentCode": "EU",
+         "CountryCode": "IT",
+         "Latitude": 45.464,
+         "Longitude": 9.1916,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "mil05"
+   },
+   {
+      "Geo": {
+         "City": "Manila",
+         "ContinentCode": "AS",
+         "CountryCode": "PH",
+         "Latitude": 14.5086,
+         "Longitude": 121.0194,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Department of Science and Technology",
+         "ASNumber": 9821,
+         "Systems": [
+            {
+               "ASNs": [
+                  9821
+               ]
+            }
+         ]
+      },
+      "Site": "mnl01"
+   },
+   {
+      "Geo": {
+         "City": "Marseille",
+         "ContinentCode": "EU",
+         "CountryCode": "FR",
+         "Latitude": 43.4366,
+         "Longitude": 5.215,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "mrs01"
+   },
+   {
+      "Geo": {
+         "City": "Nairobi",
+         "ContinentCode": "AF",
+         "CountryCode": "KE",
+         "Latitude": -1.3192,
+         "Longitude": 36.9258,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Kenya Education Network",
+         "ASNumber": 36914,
+         "Systems": [
+            {
+               "ASNs": [
+                  36914
+               ]
+            }
+         ]
+      },
+      "Site": "nbo01"
+   },
+   {
+      "Geo": {
+         "City": "San Francisco Bay Area",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 37.3833,
+         "Longitude": -122.0667,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "Internet Systems Consortium, Inc.",
+         "ASNumber": 1280,
+         "Systems": [
+            {
+               "ASNs": [
+                  1280
+               ]
+            }
+         ]
+      },
+      "Site": "nuq02"
+   },
+   {
+      "Geo": {
+         "City": "San Francisco Bay Area",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 37.3833,
+         "Longitude": -122.0667,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "nuq03"
+   },
+   {
+      "Geo": {
+         "City": "San Francisco Bay Area",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 37.3833,
+         "Longitude": -122.0667,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "nuq04"
+   },
+   {
+      "Geo": {
+         "City": "San Francisco Bay Area",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 37.3833,
+         "Longitude": -122.0667,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "Zayo Bandwidth",
+         "ASNumber": 6461,
+         "Systems": [
+            {
+               "ASNs": [
+                  6461
+               ]
+            }
+         ]
+      },
+      "Site": "nuq06"
+   },
+   {
+      "Geo": {
+         "City": "San Francisco Bay Area",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 37.3833,
+         "Longitude": -122.0667,
+         "State": "CA"
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "nuq07"
+   },
+   {
+      "Geo": {
+         "City": "Chicago",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 41.9786,
+         "Longitude": -87.9047,
+         "State": "IL"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "ord02"
+   },
+   {
+      "Geo": {
+         "City": "Chicago",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 41.9786,
+         "Longitude": -87.9047,
+         "State": "IL"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "ord03"
+   },
+   {
+      "Geo": {
+         "City": "Chicago",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 41.9786,
+         "Longitude": -87.9047,
+         "State": "IL"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "ord04"
+   },
+   {
+      "Geo": {
+         "City": "Chicago",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 41.9786,
+         "Longitude": -87.9047,
+         "State": "IL"
+      },
+      "Network": {
+         "ASName": "Zayo Bandwidth",
+         "ASNumber": 6461,
+         "Systems": [
+            {
+               "ASNs": [
+                  6461
+               ]
+            }
+         ]
+      },
+      "Site": "ord05"
+   },
+   {
+      "Geo": {
+         "City": "Chicago",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 41.9786,
+         "Longitude": -87.9047,
+         "State": "IL"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "ord06"
+   },
+   {
+      "Geo": {
+         "City": "Paris",
+         "ContinentCode": "EU",
+         "CountryCode": "FR",
+         "Latitude": 48.8584,
+         "Longitude": 2.349,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "par02"
+   },
+   {
+      "Geo": {
+         "City": "Paris",
+         "ContinentCode": "EU",
+         "CountryCode": "FR",
+         "Latitude": 48.8584,
+         "Longitude": 2.349,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "par03"
+   },
+   {
+      "Geo": {
+         "City": "Paris",
+         "ContinentCode": "EU",
+         "CountryCode": "FR",
+         "Latitude": 48.8584,
+         "Longitude": 2.349,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "par04"
+   },
+   {
+      "Geo": {
+         "City": "Paris",
+         "ContinentCode": "EU",
+         "CountryCode": "FR",
+         "Latitude": 48.8584,
+         "Longitude": 2.349,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "par05"
+   },
+   {
+      "Geo": {
+         "City": "Prague",
+         "ContinentCode": "EU",
+         "CountryCode": "CZ",
+         "Latitude": 50.0833,
+         "Longitude": 14.4167,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "prg02"
+   },
+   {
+      "Geo": {
+         "City": "Prague",
+         "ContinentCode": "EU",
+         "CountryCode": "CZ",
+         "Latitude": 50.0833,
+         "Longitude": 14.4167,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "prg03"
+   },
+   {
+      "Geo": {
+         "City": "Prague",
+         "ContinentCode": "EU",
+         "CountryCode": "CZ",
+         "Latitude": 50.0833,
+         "Longitude": 14.4167,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "prg04"
+   },
+   {
+      "Geo": {
+         "City": "Prague",
+         "ContinentCode": "EU",
+         "CountryCode": "CZ",
+         "Latitude": 50.0833,
+         "Longitude": 14.4167,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vodafone Group PLC",
+         "ASNumber": 1273,
+         "Systems": [
+            {
+               "ASNs": [
+                  1273
+               ]
+            }
+         ]
+      },
+      "Site": "prg05"
+   },
+   {
+      "Geo": {
+         "City": "Seattle",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 47.4489,
+         "Longitude": -122.3094,
+         "State": "WA"
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "sea02"
+   },
+   {
+      "Geo": {
+         "City": "Seattle",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 47.4489,
+         "Longitude": -122.3094,
+         "State": "WA"
+      },
+      "Network": {
+         "ASName": "GTT Communications Inc.",
+         "ASNumber": 3257,
+         "Systems": [
+            {
+               "ASNs": [
+                  3257
+               ]
+            }
+         ]
+      },
+      "Site": "sea03"
+   },
+   {
+      "Geo": {
+         "City": "Seattle",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 47.4489,
+         "Longitude": -122.3094,
+         "State": "WA"
+      },
+      "Network": {
+         "ASName": "Level 3 Parent, LLC",
+         "ASNumber": 3356,
+         "Systems": [
+            {
+               "ASNs": [
+                  3356
+               ]
+            }
+         ]
+      },
+      "Site": "sea04"
+   },
+   {
+      "Geo": {
+         "City": "Seattle",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 47.4489,
+         "Longitude": -122.3094,
+         "State": "WA"
+      },
+      "Network": {
+         "ASName": "Telia Company AB",
+         "ASNumber": 1299,
+         "Systems": [
+            {
+               "ASNs": [
+                  1299
+               ]
+            }
+         ]
+      },
+      "Site": "sea07"
+   },
+   {
+      "Geo": {
+         "City": "Seattle",
+         "ContinentCode": "NA",
+         "CountryCode": "US",
+         "Latitude": 47.4489,
+         "Longitude": -122.3094,
+         "State": "WA"
+      },
+      "Network": {
+         "ASName": "Cogent Communications",
+         "ASNumber": 174,
+         "Systems": [
+            {
+               "ASNs": [
+                  174
+               ]
+            }
+         ]
+      },
+      "Site": "sea08"
+   },
+   {
+      "Geo": {
+         "City": "Singapore",
+         "ContinentCode": "AS",
+         "CountryCode": "SG",
+         "Latitude": 1.355,
+         "Longitude": 103.988,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
+         "ASNumber": 6453,
+         "Systems": [
+            {
+               "ASNs": [
+                  6453
+               ]
+            }
+         ]
+      },
+      "Site": "sin01"
+   },
+   {
+      "Geo": {
+         "City": "Stavanger",
+         "ContinentCode": "EU",
+         "CountryCode": "NO",
+         "Latitude": 58.8767,
+         "Longitude": 5.6378,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Altibox AS",
+         "ASNumber": 29695,
+         "Systems": [
+            {
+               "ASNs": [
+                  29695
+               ]
+            }
+         ]
+      },
+      "Site": "svg01"
+   },
+   {
+      "Geo": {
+         "City": "Sydney",
+         "ContinentCode": "OC",
+         "CountryCode": "AU",
+         "Latitude": -33.9461,
+         "Longitude": 151.177,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Vocus Connect International Backbone",
+         "ASNumber": 4826,
+         "Systems": [
+            {
+               "ASNs": [
+                  4826
+               ]
+            }
+         ]
+      },
+      "Site": "syd02"
+   },
+   {
+      "Geo": {
+         "City": "Sydney",
+         "ContinentCode": "OC",
+         "CountryCode": "AU",
+         "Latitude": -33.9461,
+         "Longitude": 151.177,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Australian Academic and Reasearch Network (AARNet)",
+         "ASNumber": 7575,
+         "Systems": [
+            {
+               "ASNs": [
+                  7575
+               ]
+            }
+         ]
+      },
+      "Site": "syd03"
+   },
+   {
+      "Geo": {
+         "City": "Podgorica",
+         "ContinentCode": "EU",
+         "CountryCode": "ME",
+         "Latitude": 42.1078,
+         "Longitude": 18.7616,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Crnogorski Telekom a.d.Podgorica",
+         "ASNumber": 8585,
+         "Systems": [
+            {
+               "ASNs": [
+                  8585
+               ]
+            }
+         ]
+      },
+      "Site": "tgd01"
+   },
+   {
+      "Geo": {
+         "City": "Antananarivo",
+         "ContinentCode": "AF",
+         "CountryCode": "MG",
+         "Latitude": -18.7969,
+         "Longitude": 47.4788,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Telecom Malagasy",
+         "ASNumber": 37054,
+         "Systems": [
+            {
+               "ASNs": [
+                  37054
+               ]
+            }
+         ]
+      },
+      "Site": "tnr01"
+   },
+   {
+      "Geo": {
+         "City": "Taipei",
+         "ContinentCode": "AS",
+         "CountryCode": "TW",
+         "Latitude": 25.0778,
+         "Longitude": 121.224,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Taiwan Academic Network (TANet) Information Center",
+         "ASNumber": 1659,
+         "Systems": [
+            {
+               "ASNs": [
+                  1659
+               ]
+            }
+         ]
+      },
+      "Site": "tpe01"
+   },
+   {
+      "Geo": {
+         "City": "Turin",
+         "ContinentCode": "EU",
+         "CountryCode": "IT",
+         "Latitude": 45.2008,
+         "Longitude": 7.6497,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "CONSORZIO TOP IX - TORINO E PIEMONTE EXCHANGE POINT CC",
+         "ASNumber": 41364,
+         "Systems": [
+            {
+               "ASNs": [
+                  41364
+               ]
+            }
+         ]
+      },
+      "Site": "trn02"
+   },
+   {
+      "Geo": {
+         "City": "Tunis",
+         "ContinentCode": "AF",
+         "CountryCode": "TN",
+         "Latitude": 36.8516,
+         "Longitude": 10.2291,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Tunisia BackBone AS",
+         "ASNumber": 2609,
+         "Systems": [
+            {
+               "ASNs": [
+                  2609
+               ]
+            }
+         ]
+      },
+      "Site": "tun01"
+   },
+   {
+      "Geo": {
+         "City": "Vienna",
+         "ContinentCode": "EU",
+         "CountryCode": "AT",
+         "Latitude": 48.269,
+         "Longitude": 16.4107,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Next Layer Telekommunikationsdienstleistungs- und Beratungs GmbH",
+         "ASNumber": 1764,
+         "Systems": [
+            {
+               "ASNs": [
+                  1764
+               ]
+            }
+         ]
+      },
+      "Site": "vie01"
+   },
+   {
+      "Geo": {
+         "City": "Wellington",
+         "ContinentCode": "OC",
+         "CountryCode": "NZ",
+         "Latitude": -41.3272,
+         "Longitude": 174.805,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "REANNZ National Research and Education Network",
+         "ASNumber": 38022,
+         "Systems": [
+            {
+               "ASNs": [
+                  38022
+               ]
+            }
+         ]
+      },
+      "Site": "wlg02"
+   },
+   {
+      "Geo": {
+         "City": "Moncton",
+         "ContinentCode": "NA",
+         "CountryCode": "CA",
+         "Latitude": 46.1073,
+         "Longitude": -64.6738,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Hurricane Electric LLC",
+         "ASNumber": 6939,
+         "Systems": [
+            {
+               "ASNs": [
+                  6939
+               ]
+            }
+         ]
+      },
+      "Site": "yqm01"
+   },
+   {
+      "Geo": {
+         "City": "Montreal",
+         "ContinentCode": "NA",
+         "CountryCode": "CA",
+         "Latitude": 45.4576,
+         "Longitude": -73.7497,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Hurricane Electric LLC",
+         "ASNumber": 6939,
+         "Systems": [
+            {
+               "ASNs": [
+                  6939
+               ]
+            }
+         ]
+      },
+      "Site": "yul02"
+   },
+   {
+      "Geo": {
+         "City": "Vancouver",
+         "ContinentCode": "NA",
+         "CountryCode": "CA",
+         "Latitude": 49.1902,
+         "Longitude": -123.1837,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Hurricane Electric LLC",
+         "ASNumber": 6939,
+         "Systems": [
+            {
+               "ASNs": [
+                  6939
+               ]
+            }
+         ]
+      },
+      "Site": "yvr01"
+   },
+   {
+      "Geo": {
+         "City": "Winnipeg",
+         "ContinentCode": "NA",
+         "CountryCode": "CA",
+         "Latitude": 49.906,
+         "Longitude": -97.2373,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Hurricane Electric LLC",
+         "ASNumber": 6939,
+         "Systems": [
+            {
+               "ASNs": [
+                  6939
+               ]
+            }
+         ]
+      },
+      "Site": "ywg01"
+   },
+   {
+      "Geo": {
+         "City": "Calgary",
+         "ContinentCode": "NA",
+         "CountryCode": "CA",
+         "Latitude": 51.1315,
+         "Longitude": -114.0106,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Hurricane Electric LLC",
+         "ASNumber": 6939,
+         "Systems": [
+            {
+               "ASNs": [
+                  6939
+               ]
+            }
+         ]
+      },
+      "Site": "yyc02"
+   },
+   {
+      "Geo": {
+         "City": "Toronto",
+         "ContinentCode": "NA",
+         "CountryCode": "CA",
+         "Latitude": 43.6767,
+         "Longitude": -79.6306,
+         "State": ""
+      },
+      "Network": {
+         "ASName": "Hurricane Electric LLC",
+         "ASNumber": 6939,
+         "Systems": [
+            {
+               "ASNs": [
+                  6939
+               ]
+            }
+         ]
+      },
+      "Site": "yyz02"
+   }
+]
