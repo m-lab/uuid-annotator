@@ -70,3 +70,46 @@ func TestFindDirection(t *testing.T) {
 		})
 	}
 }
+
+func TestNetwork_FirstASN(t *testing.T) {
+	tests := []struct {
+		name    string
+		Systems []System
+		want    uint32
+	}{
+		{
+			name: "success",
+			Systems: []System{
+				{ASNs: []uint32{111}},
+			},
+			want: 111,
+		},
+		{
+			name:    "success-systems-empty",
+			Systems: []System{},
+			want:    0,
+		},
+		{
+			name: "success-asns-empty",
+			Systems: []System{
+				{ASNs: []uint32{}},
+			},
+			want: 0,
+		},
+		{
+			name:    "success-nil",
+			Systems: nil,
+			want:    0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n := &Network{
+				Systems: tt.Systems,
+			}
+			if got := n.FirstASN(); got != tt.want {
+				t.Errorf("Network.FirstASN() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
