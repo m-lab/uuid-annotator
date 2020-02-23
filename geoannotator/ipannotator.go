@@ -10,7 +10,6 @@ import (
 	"github.com/m-lab/go/rtx"
 	"github.com/oschwald/geoip2-golang"
 
-	"github.com/m-lab/annotation-service/api"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
@@ -35,27 +34,26 @@ func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	g.mut.RLock()
 	defer g.mut.RUnlock()
 
-	src, dst, err := annotator.Direction(ID, g.localIPs, annotations)
+	dir, err := annotator.FindDirection(ID, g.localIPs)
 	if err != nil {
 		return err
 	}
 
-	var errs []error
-	errs = append(errs, g.annotate(ID.SrcIP, src))
-	errs = append(errs, g.annotate(ID.DstIP, dst))
-
-	// Return the first error (if any).
-	for _, e := range errs {
-		if e != nil {
-			return fmt.Errorf("Could not annotate ip (%s): %w", e.Error(), annotator.ErrNoAnnotation)
-		}
+	switch dir {
+	case annotator.SrcIsClient:
+		err = g.annotate(ID.SrcIP, &annotations.Client.Geo)
+	case annotator.DstIsClient:
+		err = g.annotate(ID.DstIP, &annotations.Client.Geo)
+	}
+	if err != nil {
+		return annotator.ErrNoAnnotation
 	}
 	return nil
 }
 
 var emptyResult = geoip2.City{}
 
-func (g *geoannotator) annotate(src string, ann *api.Annotations) error {
+func (g *geoannotator) annotate(src string, geo **annotator.Geolocation) error {
 	ip := net.ParseIP(src)
 	if ip == nil {
 		return fmt.Errorf("failed to parse IP %q", src)
@@ -72,7 +70,7 @@ func (g *geoannotator) annotate(src string, ann *api.Annotations) error {
 		return fmt.Errorf("not found %q", src)
 	}
 
-	ann.Geo = &api.GeolocationIP{
+	tmp := &annotator.Geolocation{
 		ContinentCode:    record.Continent.Code,
 		CountryCode:      record.Country.IsoCode,
 		CountryName:      record.Country.Names["en"],
@@ -83,16 +81,16 @@ func (g *geoannotator) annotate(src string, ann *api.Annotations) error {
 		Longitude:        record.Location.Longitude,
 		AccuracyRadiusKm: int64(record.Location.AccuracyRadius),
 	}
-
 	// Collect subdivision information, if found.
 	if len(record.Subdivisions) > 0 {
-		ann.Geo.Subdivision1ISOCode = record.Subdivisions[0].IsoCode
-		ann.Geo.Subdivision1Name = record.Subdivisions[0].Names["en"]
+		tmp.Subdivision1ISOCode = record.Subdivisions[0].IsoCode
+		tmp.Subdivision1Name = record.Subdivisions[0].Names["en"]
 		if len(record.Subdivisions) > 1 {
-			ann.Geo.Subdivision2ISOCode = record.Subdivisions[1].IsoCode
-			ann.Geo.Subdivision2Name = record.Subdivisions[1].Names["en"]
+			tmp.Subdivision2ISOCode = record.Subdivisions[1].IsoCode
+			tmp.Subdivision2Name = record.Subdivisions[1].Names["en"]
 		}
 	}
+	*geo = tmp
 	return nil
 }
 

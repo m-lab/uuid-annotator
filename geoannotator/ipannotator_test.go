@@ -64,8 +64,8 @@ func TestIPAnnotationS2C(t *testing.T) {
 	rtx.Must(g.Annotate(conn, ann), "Could not annotate connection")
 
 	// Latitudes gotten out of the testdata by hand.
-	if math.Abs(ann.Server.Geo.Latitude-43.88) > .01 {
-		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", 43.88)
+	if math.Abs(ann.Client.Geo.Longitude - -1.25) > .01 {
+		t.Error("Bad Server latitude:", ann.Client.Geo.Longitude, "!~=", -1.25)
 	}
 	if math.Abs(ann.Client.Geo.Latitude-51.75) > .01 {
 		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 51.75)
@@ -92,8 +92,8 @@ func TestIPAnnotationC2S(t *testing.T) {
 
 	// Client and Server should be the same, no matter the order of dst and src.
 	// Latitudes gotten out of the testdata by hand.
-	if math.Abs(ann.Server.Geo.Latitude-43.88) > .01 {
-		t.Error("Bad Server latitude:", ann.Server.Geo.Latitude, "!~=", -43.88)
+	if math.Abs(ann.Client.Geo.Longitude - -1.25) > .01 {
+		t.Error("Bad Server latitude:", ann.Client.Geo.Longitude, "!~=", -1.25)
 	}
 	if math.Abs(ann.Client.Geo.Latitude-51.75) > .01 {
 		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 51.75)
