@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/csv"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -102,7 +101,7 @@ func ParseRouteView(file []byte) *Index {
 		}
 		result = append(result, IPNet{IPNet: *n, Systems: sm[record[2]]})
 	}
-	fmt.Println("skip:", skip)
+	// TODO: log/report  fmt.Println("skip:", skip)
 
 	// Sort list so that it can be searched.
 	sort.Sort(result)

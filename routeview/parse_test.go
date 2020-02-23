@@ -117,7 +117,6 @@ func BenchmarkAnnotate(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		err := an.Annotate(src, &ann)
 		if err != nil {
-			panic(err)
 			missing++
 		} else {
 			found++
