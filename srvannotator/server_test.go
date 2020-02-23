@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/url"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -161,7 +160,6 @@ func Test_srvannotator_load(t *testing.T) {
 
 func Test_srvannotator_annotate(t *testing.T) {
 	type fields struct {
-		mut               sync.RWMutex
 		localIPs          []net.IP
 		backingDataSource rawfile.Provider
 		hostname          string
@@ -182,7 +180,6 @@ func Test_srvannotator_annotate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &srvannotator{
-				mut:               tt.fields.mut,
 				localIPs:          tt.fields.localIPs,
 				backingDataSource: tt.fields.backingDataSource,
 				hostname:          tt.fields.hostname,
