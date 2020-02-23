@@ -26,7 +26,7 @@ func TestMainSmokeTest(t *testing.T) {
 	rtx.Must(routeviewv4.Set("file:./testdata/RouteViewIPv4.tiny.gz"), "Failed to set routeview v4 url for testing")
 	rtx.Must(routeviewv6.Set("file:./testdata/RouteViewIPv6.tiny.gz"), "Failed to set routeview v6 url for testing")
 	rtx.Must(siteinfo.Set("file:./testdata/annotations.json"), "Failed to set siteinfo annotations url for testing")
-	*hostname = "mlab1.lga04.measurement-lab.org"
+	*hostname = "mlab1.lga03.measurement-lab.org"
 
 	// Now start up a fake eventsocket.
 	srv := eventsocket.New(*eventsocket.Filename)
