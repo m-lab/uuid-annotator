@@ -59,12 +59,9 @@ func (a *asnAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	switch dir {
 	case annotator.DstIsServer:
 		annotations.Client.Network = a.annotate(ID.SrcIP)
-		// annotations.Server.Network = a.annotate(ID.DstIP)
 	case annotator.SrcIsServer:
 		annotations.Client.Network = a.annotate(ID.DstIP)
-		// annotations.Server.Network = a.annotate(ID.SrcIP)
 	}
-	// TODO: annotate the server IP with static siteinfo data.
 	return nil
 }
 
