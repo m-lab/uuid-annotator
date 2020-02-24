@@ -11,7 +11,7 @@ import (
 	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/memoryless"
 	"github.com/m-lab/go/warnonerror"
-	"src/github.com/m-lab/uuid-annotator/asnannotator"
+	"github.com/m-lab/uuid-annotator/asnannotator"
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/geoannotator"
