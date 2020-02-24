@@ -1,4 +1,4 @@
-package ipannotator
+package geoannotator
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"github.com/m-lab/go/rtx"
 	"github.com/oschwald/geoip2-golang"
 
-	"github.com/m-lab/annotation-service/api"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
@@ -22,44 +21,44 @@ type ReloadingAnnotator interface {
 	Reload(context.Context)
 }
 
-// ipannotator is the central struct for this module.
-type ipannotator struct {
+// geoannotator is the central struct for this module.
+type geoannotator struct {
 	mut               sync.RWMutex
 	localIPs          []net.IP
 	backingDataSource rawfile.Provider
 	maxmind           *geoip2.Reader
 }
 
-func (ipa *ipannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
-	ipa.mut.RLock()
-	defer ipa.mut.RUnlock()
+// Annotate puts into geolocation data and ASN data into the passed-in annotations map.
+func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
+	g.mut.RLock()
+	defer g.mut.RUnlock()
 
-	src, dst, err := annotator.Direction(ID, ipa.localIPs, annotations)
+	dir, err := annotator.FindDirection(ID, g.localIPs)
 	if err != nil {
 		return err
 	}
 
-	var errs []error
-	errs = append(errs, ipa.annotate(ID.SrcIP, src))
-	errs = append(errs, ipa.annotate(ID.DstIP, dst))
-
-	// Return the first error (if any).
-	for _, e := range errs {
-		if e != nil {
-			return fmt.Errorf("Could not annotate ip (%s): %w", e.Error(), annotator.ErrNoAnnotation)
-		}
+	switch dir {
+	case annotator.DstIsServer:
+		err = g.annotate(ID.SrcIP, &annotations.Client.Geo)
+	case annotator.SrcIsServer:
+		err = g.annotate(ID.DstIP, &annotations.Client.Geo)
+	}
+	if err != nil {
+		return annotator.ErrNoAnnotation
 	}
 	return nil
 }
 
 var emptyResult = geoip2.City{}
 
-func (ipa *ipannotator) annotate(src string, ann *api.Annotations) error {
+func (g *geoannotator) annotate(src string, geo **annotator.Geolocation) error {
 	ip := net.ParseIP(src)
 	if ip == nil {
 		return fmt.Errorf("failed to parse IP %q", src)
 	}
-	record, err := ipa.maxmind.City(ip)
+	record, err := g.maxmind.City(ip)
 	if err != nil {
 		return err
 	}
@@ -71,23 +70,27 @@ func (ipa *ipannotator) annotate(src string, ann *api.Annotations) error {
 		return fmt.Errorf("not found %q", src)
 	}
 
-	ann.Geo = &api.GeolocationIP{
-		ContinentCode: record.Continent.Code,
-		CountryCode:   record.Country.IsoCode,
-		// CountryCode3: not present in record struct.
-		CountryName: record.Country.Names["en"],
-		MetroCode:   int64(record.Location.MetroCode),
-		City:        record.City.Names["en"],
-		// AreaCode: not present in record struct.
+	tmp := &annotator.Geolocation{
+		ContinentCode:    record.Continent.Code,
+		CountryCode:      record.Country.IsoCode,
+		CountryName:      record.Country.Names["en"],
+		MetroCode:        int64(record.Location.MetroCode),
+		City:             record.City.Names["en"],
 		PostalCode:       record.Postal.Code,
 		Latitude:         record.Location.Latitude,
 		Longitude:        record.Location.Longitude,
 		AccuracyRadiusKm: int64(record.Location.AccuracyRadius),
 	}
-	// TODO: collect all subdivision data.
+	// Collect subdivision information, if found.
 	if len(record.Subdivisions) > 0 {
-		ann.Geo.Region = record.Subdivisions[0].IsoCode
+		tmp.Subdivision1ISOCode = record.Subdivisions[0].IsoCode
+		tmp.Subdivision1Name = record.Subdivisions[0].Names["en"]
+		if len(record.Subdivisions) > 1 {
+			tmp.Subdivision2ISOCode = record.Subdivisions[1].IsoCode
+			tmp.Subdivision2Name = record.Subdivisions[1].Names["en"]
+		}
 	}
+	*geo = tmp
 	return nil
 }
 
@@ -98,23 +101,23 @@ func isEmpty(r *geoip2.City) bool {
 // Reload is intended to be regularly called in a loop. It should check whether
 // the data in GCS is newer than the local data, and, if it is, then download
 // and load that new data into memory and then replace it in the annotator.
-func (ipa *ipannotator) Reload(ctx context.Context) {
-	newMM, err := ipa.load(ctx)
+func (g *geoannotator) Reload(ctx context.Context) {
+	newMM, err := g.load(ctx)
 	if err != nil {
 		log.Println("Could not reload dataset:", err)
 		return
 	}
 	// Don't acquire the lock until after the data is in RAM.
-	ipa.mut.Lock()
-	defer ipa.mut.Unlock()
-	ipa.maxmind = newMM
+	g.mut.Lock()
+	defer g.mut.Unlock()
+	g.maxmind = newMM
 }
 
 // load unconditionally loads datasets and returns them.
-func (ipa *ipannotator) load(ctx context.Context) (*geoip2.Reader, error) {
-	tgz, err := ipa.backingDataSource.Get(ctx)
+func (g *geoannotator) load(ctx context.Context) (*geoip2.Reader, error) {
+	tgz, err := g.backingDataSource.Get(ctx)
 	if err == rawfile.ErrNoChange {
-		return ipa.maxmind, nil
+		return g.maxmind, nil
 	}
 	if err != nil {
 		return nil, err
@@ -130,12 +133,12 @@ func (ipa *ipannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
 func New(ctx context.Context, geo rawfile.Provider, localIPs []net.IP) ReloadingAnnotator {
-	ipa := &ipannotator{
+	g := &geoannotator{
 		backingDataSource: geo,
 		localIPs:          localIPs,
 	}
 	var err error
-	ipa.maxmind, err = ipa.load(ctx)
+	g.maxmind, err = g.load(ctx)
 	rtx.Must(err, "Could not load annotation db")
-	return ipa
+	return g
 }
