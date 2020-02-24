@@ -29,7 +29,7 @@ type geoannotator struct {
 	maxmind           *geoip2.Reader
 }
 
-// Annotate puts into geolocation data and ASN data into the passed-in annotations map.
+// Annotate assignes client geolocation data to the passed-in annotations.
 func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
 	g.mut.RLock()
 	defer g.mut.RUnlock()
