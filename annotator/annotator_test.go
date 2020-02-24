@@ -3,7 +3,6 @@ package annotator
 import (
 	"encoding/json"
 	"net"
-	"reflect"
 	"testing"
 
 	"github.com/m-lab/go/rtx"
@@ -15,14 +14,13 @@ func TestJSONSerialization(t *testing.T) {
 	rtx.Must(err, "Could not serialize annotations to JSON")
 }
 
-func TestDirection(t *testing.T) {
+func TestFindDirection(t *testing.T) {
 	tests := []struct {
-		name        string
-		ID          *inetdiag.SockID
-		localIPs    []net.IP
-		ann         *Annotations
-		serverIsSrc bool
-		wantErr     bool
+		name     string
+		ID       *inetdiag.SockID
+		localIPs []net.IP
+		want     Direction
+		wantErr  bool
 	}{
 		{
 			name: "success-src-is-server",
@@ -33,8 +31,7 @@ func TestDirection(t *testing.T) {
 			localIPs: []net.IP{
 				net.ParseIP("1.0.0.1"),
 			},
-			ann:         &Annotations{},
-			serverIsSrc: true,
+			want: SrcIsServer,
 		},
 		{
 			name: "success-dst-is-server",
@@ -45,8 +42,7 @@ func TestDirection(t *testing.T) {
 			localIPs: []net.IP{
 				net.ParseIP("1.0.0.1"),
 			},
-			ann:         &Annotations{},
-			serverIsSrc: false,
+			want: DstIsServer,
 		},
 		{
 			name: "error-unknown-direction",
@@ -57,28 +53,62 @@ func TestDirection(t *testing.T) {
 			localIPs: []net.IP{
 				net.ParseIP("1.0.0.1"), // neither src, nor dst IP.
 			},
-			ann:     &Annotations{},
+			want:    Unknown,
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			src, dst, err := Direction(tt.ID, tt.localIPs, tt.ann)
+			dir, err := FindDirection(tt.ID, tt.localIPs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Direction() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr {
-				return
+			if tt.want != dir {
+				t.Errorf("Direction() wrong; got = %d, want %d", dir, tt.want)
 			}
-			if tt.serverIsSrc {
-				if !reflect.DeepEqual(src, &tt.ann.Server) {
-					t.Errorf("Direction() src = %v, want %v", src, tt.ann.Server)
-				}
-			} else {
-				if !reflect.DeepEqual(dst, &tt.ann.Server) {
-					t.Errorf("Direction() dst = %v, want %v", dst, tt.ann.Client)
-				}
+		})
+	}
+}
+
+func TestNetwork_FirstASN(t *testing.T) {
+	tests := []struct {
+		name    string
+		Systems []System
+		want    uint32
+	}{
+		{
+			name: "success",
+			Systems: []System{
+				{ASNs: []uint32{111}},
+			},
+			want: 111,
+		},
+		{
+			name:    "success-systems-empty",
+			Systems: []System{},
+			want:    0,
+		},
+		{
+			name: "success-asns-empty",
+			Systems: []System{
+				{ASNs: []uint32{}},
+			},
+			want: 0,
+		},
+		{
+			name:    "success-nil",
+			Systems: nil,
+			want:    0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n := &Network{
+				Systems: tt.Systems,
+			}
+			if got := n.FirstASN(); got != tt.want {
+				t.Errorf("Network.FirstASN() = %v, want %v", got, tt.want)
 			}
 		})
 	}
