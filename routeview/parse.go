@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/csv"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -62,7 +61,6 @@ func ParseSystems(s string) []annotator.System {
 				log.Println(err)
 				continue
 			}
-			fmt.Println("asn:", asn, "value:", value, err)
 			ints = append(ints, uint32(value))
 		}
 		result = append(result, annotator.System{ASNs: ints})

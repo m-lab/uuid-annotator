@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"reflect"
 	"testing"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
+	"github.com/xorcare/pointer"
 )
 
 var rv *Index
@@ -29,6 +32,8 @@ func init() {
 	// Only used for Benchmark.
 	an, err = asn.LoadASNDatasetFromReader(bytes.NewBuffer(b2))
 	rtx.Must(err, "Failed to load api.Annotator")
+
+	log.SetFlags(0)
 }
 
 func TestParseRouteView(t *testing.T) {
@@ -38,9 +43,19 @@ func TestParseRouteView(t *testing.T) {
 		wantCount int
 	}{
 		{
-			name:      "success",
+			name:      "success-ipv4",
 			filename:  "../testdata/RouteViewIPv4.pfx2as.gz",
 			wantCount: 545957,
+		},
+		{
+			name:      "success-ipv6",
+			filename:  "../testdata/RouteViewIPv6.pfx2as.gz",
+			wantCount: 54317,
+		},
+		{
+			name:      "corrupt-ipv4",
+			filename:  "../testdata/RouteViewIPv4.corrupt.gz",
+			wantCount: 6,
 		},
 	}
 	for _, tt := range tests {
@@ -105,6 +120,73 @@ func TestParseSystems(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ParseSystems(tt.s); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ParseSystems() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIndex_Search(t *testing.T) {
+
+	tests := []struct {
+		name     string
+		filename string
+		src      string
+		want     IPNet
+		wantErr  bool
+	}{
+		{
+			name:     "success",
+			filename: "../testdata/RouteViewIPv4.pfx2as.gz",
+			src:      "1.0.192.1",
+			want: IPNet{
+				IPNet:   net.IPNet{IP: net.ParseIP("1.0.128.0").To4(), Mask: net.CIDRMask(17, 32)},
+				Systems: pointer.String("23969"),
+			},
+		},
+		{
+			name:     "success-ipv6",
+			filename: "../testdata/RouteViewIPv6.pfx2as.gz",
+			src:      "2001:200::1",
+			want: IPNet{
+
+				IPNet:   net.IPNet{IP: net.ParseIP("2001:200::"), Mask: net.CIDRMask(32, 128)},
+				Systems: pointer.String("2500"),
+			},
+		},
+		{
+			name:     "error-not-found-ipv6",
+			filename: "../testdata/RouteViewIPv4.pfx2as.gz",
+			src:      "2001:ff00::1", // IPv6 address will not be found in IPv4 views.
+			wantErr:  true,
+		},
+		{
+			name:     "error-not-found-ipv4",
+			filename: "../testdata/RouteViewIPv4.pfx2as.gz",
+			src:      "9.0.0.9", // not present in IPv4 route view.
+			wantErr:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gz, err := ioutil.ReadFile(tt.filename)
+			rtx.Must(err, "Failed to read routeview data")
+			b, err := rawfile.FromGZ(gz)
+			rtx.Must(err, "Failed to decompress routeview")
+			rv := ParseRouteView(b)
+
+			got, err := rv.Search(tt.src)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Index.Search() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				return
+			}
+			if !reflect.DeepEqual(got.IPNet, tt.want.IPNet) {
+				t.Errorf("Index.Search() = %v, want %v", got.IPNet, tt.want.IPNet)
+			}
+			if *got.Systems != *tt.want.Systems {
+				t.Errorf("Index.Search() returned wrong Systems = %q, want %q", *got.Systems, *tt.want.Systems)
 			}
 		})
 	}
