@@ -55,10 +55,13 @@ func (a *asnAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	a.m.RLock()
 	defer a.m.RUnlock()
 
-	src, dst, err := annotator.Direction(ID, a.localIPs, annotations)
+	_, err := annotator.FindDirection(ID, a.localIPs)
 	if err != nil {
 		return err
 	}
+
+	// TODO: remove after enabling asn annotations again.
+	var src, dst *api.Annotations
 
 	var errs []error
 	errs = append(errs, a.annotate(ID.SrcIP, src))
