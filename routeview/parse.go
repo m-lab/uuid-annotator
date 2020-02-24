@@ -15,6 +15,11 @@ import (
 	"github.com/xorcare/pointer"
 )
 
+// Index contains a parsed RouteView dataset.
+type Index struct {
+	n IPNetSlice
+}
+
 // IPNet represents a parsed row in a RouteView file.
 type IPNet struct {
 	net.IPNet
@@ -24,10 +29,7 @@ type IPNet struct {
 // IPNetSlice is a sortable (and searchable) array of IPNets.
 type IPNetSlice []IPNet
 
-type Index struct {
-	n IPNetSlice
-}
-
+// Len, Less, and Swap make IPNetSlice sortable.
 func (p IPNetSlice) Len() int {
 	return len(p)
 }
