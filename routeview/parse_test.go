@@ -14,10 +14,9 @@ import (
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
-	"github.com/xorcare/pointer"
 )
 
-var rv *Index
+var ns IPNetSlice
 var an api.Annotator
 
 func init() {
@@ -27,7 +26,7 @@ func init() {
 	rtx.Must(err, "Failed to read routeview data")
 	b2, err := rawfile.FromGZ(b)
 	rtx.Must(err, "Failed to decompress routeview")
-	rv = ParseRouteView(b2)
+	ns = ParseRouteView(b2)
 
 	// Only used for Benchmark.
 	an, err = asn.LoadASNDatasetFromReader(bytes.NewBuffer(b2))
@@ -65,9 +64,9 @@ func TestParseRouteView(t *testing.T) {
 			b, err := rawfile.FromGZ(gz)
 			rtx.Must(err, "Failed to decompress routeview")
 
-			rv := ParseRouteView(b)
-			if len(rv.n) != tt.wantCount {
-				t.Errorf("Parse() = %v, want %v", len(rv.n), tt.wantCount)
+			ns := ParseRouteView(b)
+			if len(ns) != tt.wantCount {
+				t.Errorf("Parse() = %v, want %v", len(ns), tt.wantCount)
 			}
 		})
 	}
@@ -140,7 +139,7 @@ func TestIndex_Search(t *testing.T) {
 			src:      "1.0.192.1",
 			want: IPNet{
 				IPNet:   net.IPNet{IP: net.ParseIP("1.0.128.0").To4(), Mask: net.CIDRMask(17, 32)},
-				Systems: pointer.String("23969"),
+				Systems: "23969",
 			},
 		},
 		{
@@ -150,7 +149,7 @@ func TestIndex_Search(t *testing.T) {
 			want: IPNet{
 
 				IPNet:   net.IPNet{IP: net.ParseIP("2001:200::"), Mask: net.CIDRMask(32, 128)},
-				Systems: pointer.String("2500"),
+				Systems: "2500",
 			},
 		},
 		{
@@ -172,9 +171,9 @@ func TestIndex_Search(t *testing.T) {
 			rtx.Must(err, "Failed to read routeview data")
 			b, err := rawfile.FromGZ(gz)
 			rtx.Must(err, "Failed to decompress routeview")
-			rv := ParseRouteView(b)
+			ns := ParseRouteView(b)
 
-			got, err := rv.Search(tt.src)
+			got, err := ns.Search(tt.src)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Index.Search() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -185,8 +184,8 @@ func TestIndex_Search(t *testing.T) {
 			if !reflect.DeepEqual(got.IPNet, tt.want.IPNet) {
 				t.Errorf("Index.Search() = %v, want %v", got.IPNet, tt.want.IPNet)
 			}
-			if *got.Systems != *tt.want.Systems {
-				t.Errorf("Index.Search() returned wrong Systems = %q, want %q", *got.Systems, *tt.want.Systems)
+			if got.Systems != tt.want.Systems {
+				t.Errorf("Index.Search() returned wrong Systems = %q, want %q", got.Systems, tt.want.Systems)
 			}
 		})
 	}
@@ -198,13 +197,13 @@ func BenchmarkSearch(b *testing.B) {
 	src := "1.0.192.1"
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r, err := rv.Search(src)
+		r, err := ns.Search(src)
 		if err != nil {
 			missing++
 		} else {
 			found++
 		}
-		_ = ParseSystems(*r.Systems)
+		_ = ParseSystems(r.Systems)
 	}
 	fmt.Println("f:", found, "m:", missing)
 }
