@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/url"
+	"strings"
 	"sync"
 	"testing"
 
@@ -39,16 +40,18 @@ func init() {
 	corruptFile, err = rawfile.FromURL(context.Background(), cor)
 	rtx.Must(err, "Could not create rawfile.Provider")
 
-	localIPs = []net.IP{
-		net.ParseIP("1.0.0.1"),
-		net.ParseIP("2001:200::1"),
-	}
+	log.SetFlags(0) // log.Lshortfile | log.LstdFlags)
 
-	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }
 
-func xTest_asnAnnotator_Annotate(t *testing.T) {
+func Test_asnAnnotator_Annotate(t *testing.T) {
 
+	localV4 := "9.0.0.9"
+	localV6 := "2002::1"
+	localIPs = []net.IP{
+		net.ParseIP(localV4),
+		net.ParseIP(localV6),
+	}
 	tests := []struct {
 		name    string
 		ID      *inetdiag.SockID
@@ -59,22 +62,21 @@ func xTest_asnAnnotator_Annotate(t *testing.T) {
 			name: "success",
 			ID: &inetdiag.SockID{
 				SPort: 1,
-				SrcIP: "1.0.0.1",
+				SrcIP: localV4,
 				DPort: 2,
-				DstIP: "9.0.0.9",
+				DstIP: "1.0.0.1",
 			},
 			want: &annotator.Annotations{
-				// Local IP is identified as the Server with valid ASN value.
-				Server: annotator.ServerAnnotations{
+				// Identify dst as the client.
+				Client: annotator.ClientAnnotations{
 					Network: &annotator.Network{
+						CIDR:     "1.0.0.0/24",
+						ASNumber: 13335,
 						Systems: []annotator.System{
-							{
-								ASNs: []uint32{13335},
-							},
+							{ASNs: []uint32{13335}},
 						},
 					},
 				},
-				// Client will not be populated, b/c 9.0.0.9 is not present in data.
 			},
 		},
 		{
@@ -83,22 +85,17 @@ func xTest_asnAnnotator_Annotate(t *testing.T) {
 				SPort: 1,
 				SrcIP: "223.252.176.1",
 				DPort: 2,
-				DstIP: "1.0.0.1",
+				DstIP: localV4,
 			},
 			want: &annotator.Annotations{
-				// Local IP is identified as the Server with valid ASN value.
+				// Identify src as the client.
 				Client: annotator.ClientAnnotations{
 					Network: &annotator.Network{
+						CIDR:     "223.252.176.0/24",
+						ASNumber: 133929,
 						Systems: []annotator.System{
 							{ASNs: []uint32{133929}},
 							{ASNs: []uint32{133107}},
-						},
-					},
-				},
-				Server: annotator.ServerAnnotations{
-					Network: &annotator.Network{
-						Systems: []annotator.System{
-							{ASNs: []uint32{13335}},
 						},
 					},
 				},
@@ -120,14 +117,17 @@ func xTest_asnAnnotator_Annotate(t *testing.T) {
 			name: "error-bad-ip",
 			ID: &inetdiag.SockID{
 				SPort: 1,
-				SrcIP: "1.0.0.1",
+				SrcIP: localV4,
 				DPort: 2,
 				DstIP: "this-is-not-an-ip",
 			},
 			want: &annotator.Annotations{
-				Server: annotator.ServerAnnotations{Network: &annotator.Network{Systems: []annotator.System{{ASNs: []uint32{13335}}}}},
+				Client: annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						Missing: true,
+					},
+				},
 			},
-			wantErr: true,
 		},
 		{
 			name: "success-ipv6",
@@ -135,12 +135,19 @@ func xTest_asnAnnotator_Annotate(t *testing.T) {
 				SPort: 1,
 				SrcIP: "2001:200::1",
 				DPort: 2,
-				DstIP: "this-is-not-an-ip",
+				DstIP: localV6,
 			},
 			want: &annotator.Annotations{
-				Server: annotator.ServerAnnotations{Network: &annotator.Network{Systems: []annotator.System{{ASNs: []uint32{2500}}}}},
+				Client: annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						CIDR:     "2001:200::/32",
+						ASNumber: 2500,
+						Systems: []annotator.System{
+							{ASNs: []uint32{2500}},
+						},
+					},
+				},
 			},
-			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -153,7 +160,7 @@ func xTest_asnAnnotator_Annotate(t *testing.T) {
 				t.Errorf("asnAnnotator.Annotate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if diff := deep.Equal(ann, tt.want); diff != nil {
-				t.Errorf("Annotate() failed; got , want %#v", diff) // ann, tt.want)
+				t.Errorf("Annotate() failed; %s", strings.Join(diff, "\n")) // ann, tt.want)
 			}
 		})
 	}
@@ -167,7 +174,7 @@ func (b badProvider) Get(_ context.Context) ([]byte, error) {
 	return nil, b.err
 }
 
-func xTest_asnAnnotator_Reload(t *testing.T) {
+func Test_asnAnnotator_Reload(t *testing.T) {
 	type fields struct {
 		m        sync.RWMutex
 		localIPs []net.IP

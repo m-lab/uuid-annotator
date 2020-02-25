@@ -1,21 +1,17 @@
 package asnannotator
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"sync"
 
 	"github.com/m-lab/go/rtx"
 
-	"github.com/m-lab/annotation-service/api"
-	"github.com/m-lab/annotation-service/asn"
-	"github.com/m-lab/annotation-service/iputils"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
+	"github.com/m-lab/uuid-annotator/routeview"
 )
 
 // ReloadingAnnotator is just a regular annotator with a Reload method.
@@ -30,8 +26,8 @@ type asnAnnotator struct {
 	localIPs []net.IP
 	as4      rawfile.Provider
 	as6      rawfile.Provider
-	asn4     api.Annotator
-	asn6     api.Annotator
+	asn4     routeview.Index
+	asn6     routeview.Index
 }
 
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
@@ -55,43 +51,46 @@ func (a *asnAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	a.m.RLock()
 	defer a.m.RUnlock()
 
-	_, err := annotator.FindDirection(ID, a.localIPs)
+	dir, err := annotator.FindDirection(ID, a.localIPs)
 	if err != nil {
 		return err
 	}
 
-	// TODO: remove after enabling asn annotations again.
-	var src, dst *api.Annotations
-
-	var errs []error
-	errs = append(errs, a.annotate(ID.SrcIP, src))
-	errs = append(errs, a.annotate(ID.DstIP, dst))
-
-	// Return the first error (if any).
-	for _, e := range errs {
-		if e != nil {
-			return fmt.Errorf("Could not annotate ip (%s): %w", e.Error(), annotator.ErrNoAnnotation)
-		}
+	// TODO: annotate the server IP with siteinfo data.
+	switch dir {
+	case annotator.DstIsServer:
+		annotations.Client.Network = a.annotate(ID.SrcIP)
+	case annotator.SrcIsServer:
+		annotations.Client.Network = a.annotate(ID.DstIP)
 	}
 	return nil
 }
 
-func (a *asnAnnotator) annotate(src string, ann *api.Annotations) error {
-	err := a.asn4.Annotate(src, ann)
-	// Check if IPv4 succeeded.
-	if err == nil && ann.Network != nil && len(ann.Network.Systems) > 0 {
+func (a *asnAnnotator) annotate(src string) *annotator.Network {
+	ann := &annotator.Network{}
+	// Check IPv4 first.
+	ipnet, err := a.asn4.Search(src)
+	// NOTE: ignore errors on the first attempt.
+	if err == nil {
+		ann.Systems = routeview.ParseSystems(ipnet.Systems)
+		ann.ASNumber = ann.FirstASN()
+		ann.CIDR = ipnet.String()
 		// The annotation succeeded with IPv4.
-		return nil
+		return ann
 	}
-	// Otherwise reset to try again.
-	ann.Network = nil
 
-	err = a.asn6.Annotate(src, ann)
-	if err != nil && err != iputils.ErrNodeNotFound {
-		// Ignore not found errors.
-		return err
+	ipnet, err = a.asn6.Search(src)
+	if err != nil {
+		// In this case, the search has failed twice.
+		ann.Missing = true
+		return ann
 	}
-	return nil
+
+	ann.Systems = routeview.ParseSystems(ipnet.Systems)
+	ann.ASNumber = ann.FirstASN()
+	ann.CIDR = ipnet.String()
+	// The annotation succeeded with IPv6.
+	return ann
 }
 
 // Reload is intended to be regularly called in a loop. It should check whether
@@ -115,7 +114,7 @@ func (a *asnAnnotator) Reload(ctx context.Context) {
 	a.asn6 = new6
 }
 
-func (a *asnAnnotator) load4(ctx context.Context) (api.Annotator, error) {
+func (a *asnAnnotator) load4(ctx context.Context) (routeview.Index, error) {
 	gz, err := a.as4.Get(ctx)
 	if err == rawfile.ErrNoChange {
 		return a.asn4, nil
@@ -126,7 +125,7 @@ func (a *asnAnnotator) load4(ctx context.Context) (api.Annotator, error) {
 	return a.load(ctx, gz)
 }
 
-func (a *asnAnnotator) load6(ctx context.Context) (api.Annotator, error) {
+func (a *asnAnnotator) load6(ctx context.Context) (routeview.Index, error) {
 	gz, err := a.as6.Get(ctx)
 	if err == rawfile.ErrNoChange {
 		return a.asn6, nil
@@ -137,10 +136,10 @@ func (a *asnAnnotator) load6(ctx context.Context) (api.Annotator, error) {
 	return a.load(ctx, gz)
 }
 
-func (a *asnAnnotator) load(ctx context.Context, gz []byte) (api.Annotator, error) {
+func (a *asnAnnotator) load(ctx context.Context, gz []byte) (routeview.Index, error) {
 	data, err := rawfile.FromGZ(gz)
 	if err != nil {
 		return nil, err
 	}
-	return asn.LoadASNDatasetFromReader(bytes.NewBuffer(data))
+	return routeview.ParseRouteView(data), nil
 }
