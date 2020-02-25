@@ -86,9 +86,7 @@ func ParseRouteView(file []byte) IPNetSlice {
 		_, n, err := net.ParseCIDR(record[0] + "/" + record[1])
 		if _, ok := sm[record[2]]; !ok {
 			// Break string connection to underlying RAM allocated by the CSV reader.
-			dst := make([]byte, len(record[2]))
-			copy(dst, []byte(record[2]))
-			sm[record[2]] = string(dst)
+			sm[record[2]] = strings.Repeat(record[2], 1)
 		}
 		if len(result) > 1 && result[len(result)-1].Contains(n.IP) && result[len(result)-1].Systems == record[2] {
 			// If the last network contains the current one with the same systems, skip it.
@@ -108,9 +106,9 @@ func ParseRouteView(file []byte) IPNetSlice {
 var ErrNoASNFound = errors.New("No ASN found for address")
 
 // Search attempts to find the given IP in the IPNetSlice.
-func (ns IPNetSlice) Search(IP string) (IPNet, error) {
+func (ns IPNetSlice) Search(s string) (IPNet, error) {
 	// bytes.Compare will only work correctly when both net.IPs have the same byte count.
-	ip := net.ParseIP(IP)
+	ip := net.ParseIP(s)
 	if ip.To4() != nil {
 		ip = ip.To4()
 	}
