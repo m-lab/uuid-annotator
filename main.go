@@ -11,6 +11,7 @@ import (
 	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/memoryless"
 	"github.com/m-lab/go/warnonerror"
+	"src/github.com/m-lab/uuid-annotator/asnannotator"
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/geoannotator"
@@ -85,11 +86,11 @@ func main() {
 	rtx.Must(err, "Could not get maxmind data from url")
 	geo := geoannotator.New(mainCtx, p, localIPs)
 
-	//p4, err := rawfile.FromURL(mainCtx, routeviewv4.URL)
-	//rtx.Must(err, "Could not load routeview v4 URL")
-	//p6, err := rawfile.FromURL(mainCtx, routeviewv6.URL)
-	//rtx.Must(err, "Could not load routeview v6 URL")
-	//asn := asnannotator.New(mainCtx, p4, p6, localIPs)
+	p4, err := rawfile.FromURL(mainCtx, routeviewv4.URL)
+	rtx.Must(err, "Could not load routeview v4 URL")
+	p6, err := rawfile.FromURL(mainCtx, routeviewv6.URL)
+	rtx.Must(err, "Could not load routeview v6 URL")
+	asn := asnannotator.New(mainCtx, p4, p6, localIPs)
 
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
@@ -103,7 +104,7 @@ func main() {
 		rtx.Must(err, "Could not create ticker for reloading")
 		for range tick.C {
 			geo.Reload(mainCtx)
-			// asn.Reload(mainCtx)
+			asn.Reload(mainCtx)
 		}
 		wg.Done()
 	}()
