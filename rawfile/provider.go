@@ -6,8 +6,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
@@ -76,16 +78,39 @@ func (f *fileProvider) Get(ctx context.Context) ([]byte, error) {
 	return b, nil
 }
 
+// httpsProvider gets files from public HTTPS URLs (i.e. no authentication).
+type httpsProvider struct {
+	u       url.URL
+	timeout time.Duration
+	client  *http.Client
+}
+
+func (h *httpsProvider) Get(ctx context.Context) ([]byte, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, h.timeout)
+	defer cancel()
+	r, err := http.NewRequestWithContext(reqCtx, http.MethodGet, h.u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := h.client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
+}
+
 // FromURL returns a new rawfile.Provider based on the passed-in URL. Supported
-// URL schemes are currently: gs://bucket/filename and file:localpath . Whether
-// the path contained in the URL is valid isn't known until the Get() method of
-// the returned Provider is called. Unsupported URL schemes cause this to return
-// ErrUnsupportedURLScheme.
+// URL schemes are currently: gs://bucket/filename, file:localpath, and
+// https://. Whether the path contained in the URL is valid isn't known until
+// the Get() method of the returned Provider is called. Unsupported URL schemes
+// cause this to return ErrUnsupportedURLScheme.
 //
 // Users interested in having the daemon download the data directly from MaxMind
-// should implement an https case in the below handler. M-Lab doesn't need that
-// case because we cache MaxMind's data to reduce load on their servers and to
-// eliminate a runtime dependency on a third party service.
+// using credentials should implement an alternate https case in the below
+// handler. M-Lab doesn't need that case because we cache MaxMind's data to
+// reduce load on their servers and to eliminate a runtime dependency on a third
+// party service.
 func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 	switch u.Scheme {
 	case "gs":
@@ -102,6 +127,13 @@ func FromURL(ctx context.Context, u *url.URL) (Provider, error) {
 	case "file":
 		return &fileProvider{
 			filename: u.Opaque,
+		}, nil
+
+	case "https":
+		return &httpsProvider{
+			u:       *u,
+			timeout: time.Minute,
+			client:  http.DefaultClient,
 		}, nil
 	default:
 		return nil, ErrUnsupportedURLScheme
