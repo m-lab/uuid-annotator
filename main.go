@@ -10,24 +10,25 @@ import (
 
 	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/memoryless"
-	"github.com/m-lab/go/warnonerror"
-	"github.com/m-lab/uuid-annotator/asnannotator"
-
-	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/geoannotator"
-	"github.com/m-lab/uuid-annotator/rawfile"
-
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
+	"github.com/m-lab/go/warnonerror"
 	"github.com/m-lab/tcp-info/eventsocket"
+	"github.com/m-lab/uuid-annotator/annotator"
+	"github.com/m-lab/uuid-annotator/asnannotator"
+	"github.com/m-lab/uuid-annotator/geoannotator"
 	"github.com/m-lab/uuid-annotator/handler"
+	"github.com/m-lab/uuid-annotator/rawfile"
+	"github.com/m-lab/uuid-annotator/srvannotator"
 )
 
 var (
 	datadir         = flag.String("datadir", ".", "The directory to put the data in")
+	hostname        = flag.String("hostname", "", "The server hostname, used to lookup server siteinfo annotations")
 	maxmindurl      = flagx.URL{}
 	routeviewv4     = flagx.URL{}
 	routeviewv6     = flagx.URL{}
+	siteinfo        = flagx.URL{}
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
 	// Reloading relatively frequently should be fine as long as (a) download
@@ -46,6 +47,7 @@ func init() {
 	flag.Var(&maxmindurl, "maxmind.url", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
 	flag.Var(&routeviewv4, "routeview-v4.url", "The URL for the RouteViewIPv4 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	flag.Var(&routeviewv6, "routeview-v6.url", "The URL for the RouteViewIPv6 file containing ASN metadata. gs:// and file:// schemes accepted.")
+	flag.Var(&siteinfo, "siteinfo.url", "The URL for the Siteinfo JSON file containing server location and ASN metadata. gs:// and file:// schemes accepted.")
 	log.SetFlags(log.LstdFlags | log.LUTC | log.Lshortfile)
 }
 
@@ -92,6 +94,10 @@ func main() {
 	rtx.Must(err, "Could not load routeview v6 URL")
 	asn := asnannotator.New(mainCtx, p4, p6, localIPs)
 
+	js, err := rawfile.FromURL(mainCtx, siteinfo.URL)
+	rtx.Must(err, "Could not load siteinfo URL")
+	sia := srvannotator.New(mainCtx, *hostname, js, localIPs)
+
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
 	go func() {
@@ -110,7 +116,7 @@ func main() {
 	}()
 
 	// Generate .json files for every UUID discovered.
-	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo})
+	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn, sia})
 	wg.Add(1)
 	go func() {
 		h.ProcessIncomingRequests(mainCtx)
