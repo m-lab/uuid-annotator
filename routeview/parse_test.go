@@ -16,7 +16,7 @@ import (
 	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
-var ns IPNetSlice
+var ns Index
 var an api.Annotator
 
 func init() {

@@ -20,17 +20,17 @@ type IPNet struct {
 	Systems string
 }
 
-// IPNetSlice is a sortable (and searchable) array of IPNets.
-type IPNetSlice []IPNet
+// Index is a sortable (and searchable) array of IPNets.
+type Index []IPNet
 
-// Len, Less, and Swap make IPNetSlice sortable.
-func (ns IPNetSlice) Len() int {
+// Len, Less, and Swap make Index sortable.
+func (ns Index) Len() int {
 	return len(ns)
 }
-func (ns IPNetSlice) Less(i, j int) bool {
+func (ns Index) Less(i, j int) bool {
 	return bytes.Compare(ns[i].IP, ns[j].IP) < 0
 }
-func (ns IPNetSlice) Swap(i, j int) {
+func (ns Index) Swap(i, j int) {
 	n := ns[j]
 	ns[j] = ns[i]
 	ns[i] = n
@@ -65,8 +65,8 @@ func ParseSystems(s string) []annotator.System {
 }
 
 // ParseRouteView reads the given csv file and generates a sorted IP list.
-func ParseRouteView(file []byte) IPNetSlice {
-	result := IPNetSlice{}
+func ParseRouteView(file []byte) Index {
+	result := Index{}
 	sm := map[string]string{}
 
 	skip := 0
@@ -105,8 +105,8 @@ func ParseRouteView(file []byte) IPNetSlice {
 // ErrNoASNFound is returned when search fails to identify a network for the given src IP.
 var ErrNoASNFound = errors.New("No ASN found for address")
 
-// Search attempts to find the given IP in the IPNetSlice.
-func (ns IPNetSlice) Search(s string) (IPNet, error) {
+// Search attempts to find the given IP in the Index.
+func (ns Index) Search(s string) (IPNet, error) {
 	// bytes.Compare will only work correctly when both net.IPs have the same byte count.
 	ip := net.ParseIP(s)
 	if ip.To4() != nil {
