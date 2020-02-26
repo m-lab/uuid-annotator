@@ -1,6 +1,7 @@
 package srvannotator
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -13,7 +14,6 @@ import (
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/rawfile"
-	"golang.org/x/net/context"
 )
 
 func init() {
@@ -43,7 +43,7 @@ func TestNew(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:     "success",
+			name:     "success-src",
 			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: localRawfile,
 			hostname: "mlab1.lga03.measurement-lab.org",
@@ -52,6 +52,30 @@ func TestNew(t *testing.T) {
 				SrcIP: "1.0.0.1",
 				DPort: 2,
 				DstIP: "64.86.148.137",
+			},
+		},
+		{
+			name:     "success-dest",
+			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
+			provider: localRawfile,
+			hostname: "mlab1.lga03.measurement-lab.org",
+			ID: &inetdiag.SockID{
+				SPort: 1,
+				SrcIP: "64.86.148.137",
+				DPort: 2,
+				DstIP: "1.0.0.1",
+			},
+		},
+		{
+			name:     "error-neither-ips-are-server",
+			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
+			provider: localRawfile,
+			hostname: "mlab1.lga03.measurement-lab.org",
+			ID: &inetdiag.SockID{
+				SPort: 1,
+				SrcIP: "2.0.0.2",
+				DPort: 2,
+				DstIP: "1.0.0.1",
 			},
 		},
 	}
@@ -142,9 +166,9 @@ func Test_srvannotator_load(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := &srvannotator{
-				backingDataSource: tt.provider,
-				hostname:          tt.hostname,
-				localIPs:          tt.localIPs,
+				siteinfoSource: tt.provider,
+				hostname:       tt.hostname,
+				localIPs:       tt.localIPs,
 			}
 			ctx := context.Background()
 			an, err := g.load(ctx)
@@ -153,40 +177,6 @@ func Test_srvannotator_load(t *testing.T) {
 			}
 			if diff := deep.Equal(an, tt.want); diff != nil {
 				t.Errorf("Annotate() failed; %s", strings.Join(diff, "\n")) // ann, tt.want)
-			}
-		})
-	}
-}
-
-func Test_srvannotator_annotate(t *testing.T) {
-	type fields struct {
-		localIPs          []net.IP
-		backingDataSource rawfile.Provider
-		hostname          string
-		server            *annotator.ServerAnnotations
-	}
-	type args struct {
-		src    string
-		server *annotator.ServerAnnotations
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			g := &srvannotator{
-				localIPs:          tt.fields.localIPs,
-				backingDataSource: tt.fields.backingDataSource,
-				hostname:          tt.fields.hostname,
-				server:            tt.fields.server,
-			}
-			if err := g.annotate(tt.args.src, tt.args.server); (err != nil) != tt.wantErr {
-				t.Errorf("srvannotator.annotate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

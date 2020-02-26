@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -18,21 +17,23 @@ import (
 
 // srvannotator is the central struct for this module.
 type srvannotator struct {
-	mut               sync.RWMutex
-	localIPs          []net.IP
-	backingDataSource rawfile.Provider
-	hostname          string
-	server            *annotator.ServerAnnotations
+	m              sync.RWMutex
+	localIPs       []net.IP
+	siteinfoSource rawfile.Provider
+	hostname       string
+	server         *annotator.ServerAnnotations
 }
 
+// ErrNotFound is generated when the given hostname cannot be found in the
+// downloaded siteinfo annotations.
 var ErrNotFound = errors.New("Not Found")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
 func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []net.IP) annotator.Annotator {
 	g := &srvannotator{
-		backingDataSource: js,
-		hostname:          hostname,
-		localIPs:          localIPs,
+		siteinfoSource: js,
+		hostname:       hostname,
+		localIPs:       localIPs,
 	}
 	var err error
 	g.server, err = g.load(ctx)
@@ -42,8 +43,8 @@ func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []n
 
 // Annotate puts into geolocation data and ASN data into the passed-in annotations map.
 func (g *srvannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
-	g.mut.RLock()
-	defer g.mut.RUnlock()
+	g.m.RLock()
+	defer g.m.RUnlock()
 
 	dir, err := annotator.FindDirection(ID, g.localIPs)
 	if err != nil {
@@ -52,33 +53,26 @@ func (g *srvannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 
 	switch dir {
 	case annotator.DstIsServer:
-		err = g.annotate(ID.DstIP, &annotations.Server)
+		g.annotate(ID.DstIP, &annotations.Server)
 	case annotator.SrcIsServer:
-		err = g.annotate(ID.SrcIP, &annotations.Server)
-	}
-	if err != nil {
-		return fmt.Errorf("Could not annotate ip: %w", err)
+		g.annotate(ID.SrcIP, &annotations.Server)
 	}
 	return nil
 }
 
-func (g *srvannotator) annotate(src string, server *annotator.ServerAnnotations) error {
-	ip := net.ParseIP(src)
-	if ip == nil {
-		return fmt.Errorf("failed to parse IP %q", src)
-	}
-	// TODO: verify that the given IP actually matches the current server IP block.
+func (g *srvannotator) annotate(src string, server *annotator.ServerAnnotations) {
+	// TODO: verify that the given IP actually matches the public server IP block.
 	*server = *g.server
-	return nil
 }
 
-// load unconditionally loads datasets and returns them.
+// load unconditionally loads siteinfo dataset and returns them.
 func (g *srvannotator) load(ctx context.Context) (*annotator.ServerAnnotations, error) {
-	js, err := g.backingDataSource.Get(ctx)
+	js, err := g.siteinfoSource.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var s []annotator.ServerAnnotations
+	var result annotator.ServerAnnotations
 	err = json.Unmarshal(js, &s)
 	if err != nil {
 		return nil, err
@@ -91,7 +85,8 @@ func (g *srvannotator) load(ctx context.Context) (*annotator.ServerAnnotations, 
 	for i := range s {
 		if s[i].Site == site {
 			s[i].Machine = f[0]
-			return &s[i], nil
+			result = s[i] // Copy out of array.
+			return &result, nil
 		}
 	}
 	return nil, ErrNotFound
