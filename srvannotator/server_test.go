@@ -77,6 +77,7 @@ func TestNew(t *testing.T) {
 				DPort: 2,
 				DstIP: "1.0.0.1",
 			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
