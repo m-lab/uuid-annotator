@@ -1,4 +1,4 @@
-package srvannotator
+package siteannotator
 
 import (
 	"context"
