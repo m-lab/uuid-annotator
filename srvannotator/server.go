@@ -15,8 +15,8 @@ import (
 	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
-// srvannotator is the central struct for this module.
-type srvannotator struct {
+// siteAnnotator is the central struct for this module.
+type siteAnnotator struct {
 	m              sync.RWMutex
 	localIPs       []net.IP
 	siteinfoSource rawfile.Provider
@@ -30,7 +30,7 @@ var ErrNotFound = errors.New("Not Found")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
 func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []net.IP) annotator.Annotator {
-	g := &srvannotator{
+	g := &siteAnnotator{
 		siteinfoSource: js,
 		hostname:       hostname,
 		localIPs:       localIPs,
@@ -41,8 +41,8 @@ func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []n
 	return g
 }
 
-// Annotate puts into geolocation data and ASN data into the passed-in annotations map.
-func (g *srvannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
+// Annotate assigns the server geolocation and ASN metadata.
+func (g *siteAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotations) error {
 	g.m.RLock()
 	defer g.m.RUnlock()
 
@@ -60,13 +60,13 @@ func (g *srvannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	return nil
 }
 
-func (g *srvannotator) annotate(src string, server *annotator.ServerAnnotations) {
+func (g *siteAnnotator) annotate(src string, server *annotator.ServerAnnotations) {
 	// TODO: verify that the given IP actually matches the public server IP block.
 	*server = *g.server
 }
 
 // load unconditionally loads siteinfo dataset and returns them.
-func (g *srvannotator) load(ctx context.Context) (*annotator.ServerAnnotations, error) {
+func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations, error) {
 	js, err := g.siteinfoSource.Get(ctx)
 	if err != nil {
 		return nil, err
