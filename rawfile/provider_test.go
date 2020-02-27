@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
+	"reflect"
 	"testing"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/googleapis/google-cloud-go-testing/storage/stiface"
@@ -62,6 +66,10 @@ func TestFromURL(t *testing.T) {
 		{
 			name: "GCS nonexistent file",
 			url:  "gs://mlab-nonexistent-bucket/nonexistent-object.zip",
+		},
+		{
+			name: "HTTPS file",
+			url:  "https://siteinfo.mlab-oti.measurementlab.net/v1/sites/annotations.json",
 		},
 		{
 			name:    "Unsupported URL scheme",
@@ -332,6 +340,65 @@ func Test_gcsProvider_Get(t *testing.T) {
 			}
 			if tt.wantNonNil != (got != nil) {
 				t.Errorf("gcsProvider.Get() = %v, wantNonNil=%v", got, tt.wantNonNil)
+			}
+		})
+	}
+}
+
+func Test_httpsProvider_Get(t *testing.T) {
+	tests := []struct {
+		name    string
+		u       *url.URL
+		timeout time.Duration
+		ctx     context.Context
+		want    []byte
+		wantErr bool
+	}{
+		{
+			name:    "success",
+			timeout: time.Second,
+			want:    []byte("{}"),
+		},
+		{
+			name:    "error-expired-context",
+			timeout: 0, // context timeout will expire immediately.
+			wantErr: true,
+		},
+		{
+			name: "error-empty-or-bad-url",
+			u: &url.URL{
+				Scheme: "-", // invalid url injects a failure creating request.
+			},
+			timeout: time.Second,
+			wantErr: true,
+		},
+	}
+	srv := httptest.NewTLSServer(http.HandlerFunc(
+		func(w http.ResponseWriter, _ *http.Request) {
+			io.WriteString(w, "{}")
+		}),
+	)
+	defer srv.Close()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u, err := url.Parse(srv.URL)
+			rtx.Must(err, "failed to parse url from test server")
+			h := &httpsProvider{
+				timeout: tt.timeout,
+				client:  srv.Client(),
+			}
+			// Use the httptest server url unless a test spec specifies another URL.
+			h.u = *u
+			if tt.u != nil {
+				h.u = *tt.u
+			}
+			got, err := h.Get(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("httpsProvider.Get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("httpsProvider.Get() = %v, want %v", got, tt.want)
 			}
 		})
 	}
