@@ -19,7 +19,7 @@ import (
 	"github.com/m-lab/uuid-annotator/geoannotator"
 	"github.com/m-lab/uuid-annotator/handler"
 	"github.com/m-lab/uuid-annotator/rawfile"
-	"github.com/m-lab/uuid-annotator/srvannotator"
+	"github.com/m-lab/uuid-annotator/siteannotator"
 )
 
 var (
@@ -96,7 +96,7 @@ func main() {
 
 	js, err := rawfile.FromURL(mainCtx, siteinfo.URL)
 	rtx.Must(err, "Could not load siteinfo URL")
-	sia := srvannotator.New(mainCtx, *hostname, js, localIPs)
+	site := siteannotator.New(mainCtx, *hostname, js, localIPs)
 
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
@@ -116,7 +116,7 @@ func main() {
 	}()
 
 	// Generate .json files for every UUID discovered.
-	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn, sia})
+	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn, site})
 	wg.Add(1)
 	go func() {
 		h.ProcessIncomingRequests(mainCtx)
