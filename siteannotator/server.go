@@ -26,9 +26,9 @@ type siteAnnotator struct {
 	v6             net.IPNet
 }
 
-// ErrNotFound is generated when the given hostname cannot be found in the
+// ErrHostnameNotFound is generated when the given hostname cannot be found in the
 // downloaded siteinfo annotations.
-var ErrNotFound = errors.New("Not Found")
+var ErrHostnameNotFound = errors.New("Hostname Not Found")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
 func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []net.IP) annotator.Annotator {
@@ -112,7 +112,7 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 	}
 	f := strings.Split(g.hostname, ".")
 	if len(f) < 2 {
-		return nil, ErrNotFound
+		return nil, ErrHostnameNotFound
 	}
 	site := f[1]
 	for i := range s {
@@ -126,5 +126,5 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 			return &result, nil
 		}
 	}
-	return nil, ErrNotFound
+	return nil, ErrHostnameNotFound
 }
