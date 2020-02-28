@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	log.SetFlags(0)
 }
 
 type badProvider struct {
@@ -34,12 +34,44 @@ func TestNew(t *testing.T) {
 	localRawfile, err := rawfile.FromURL(context.Background(), u)
 	rtx.Must(err, "Could not create rawfile.Provider")
 
+	minimalServerAnn := func(site string) annotator.ServerAnnotations {
+		return annotator.ServerAnnotations{
+			Site:    site,
+			Machine: "mlab1",
+			Geo: &annotator.Geolocation{
+				City: "New York",
+			},
+			Network: &annotator.Network{
+				ASName: "TATA COMMUNICATIONS (AMERICA) INC",
+			},
+		}
+	}
+	defaultServerAnn := annotator.ServerAnnotations{
+		Machine: "mlab1",
+		Site:    "lga03",
+		Geo: &annotator.Geolocation{
+			ContinentCode: "NA",
+			CountryCode:   "US",
+			City:          "New York",
+			Latitude:      40.7667,
+			Longitude:     -73.8667,
+		},
+		Network: &annotator.Network{
+			ASNumber: 6453,
+			ASName:   "TATA COMMUNICATIONS (AMERICA) INC",
+			Systems: []annotator.System{
+				{ASNs: []uint32{6453}},
+			},
+		},
+	}
+
 	tests := []struct {
 		name     string
 		localIPs []net.IP
 		provider rawfile.Provider
 		hostname string
 		ID       *inetdiag.SockID
+		want     annotator.Annotations
 		wantErr  bool
 	}{
 		{
@@ -53,6 +85,9 @@ func TestNew(t *testing.T) {
 				DPort: 2,
 				DstIP: "64.86.148.137",
 			},
+			want: annotator.Annotations{
+				Server: defaultServerAnn,
+			},
 		},
 		{
 			name:     "success-dest",
@@ -65,6 +100,65 @@ func TestNew(t *testing.T) {
 				DPort: 2,
 				DstIP: "1.0.0.1",
 			},
+			want: annotator.Annotations{
+				Server: defaultServerAnn,
+			},
+		},
+		{
+			name:     "success-empty-ipv4-with-ipv6-connection",
+			localIPs: []net.IP{net.ParseIP("2001:5a0:4300::2")},
+			provider: localRawfile,
+			hostname: "mlab1.four0.measurement-lab.org",
+			ID: &inetdiag.SockID{
+				SPort: 1,
+				SrcIP: "2001:5a0:4300::2",
+				DPort: 2,
+				DstIP: "2600::1",
+			},
+			want: annotator.Annotations{
+				Server: minimalServerAnn("four0"),
+			},
+		},
+		{
+			name:     "success-empty-ipv4-with-ipv4-connection",
+			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
+			provider: localRawfile,
+			hostname: "mlab1.four0.measurement-lab.org",
+			ID: &inetdiag.SockID{
+				SPort: 1,
+				SrcIP: "64.86.148.137",
+				DPort: 2,
+				DstIP: "1.0.0.1",
+			},
+			want: annotator.Annotations{},
+		},
+		{
+			name:     "success-empty-ipv6-with-ipv4-connection",
+			localIPs: []net.IP{net.ParseIP("64.86.148.130")},
+			provider: localRawfile,
+			hostname: "mlab1.six01.measurement-lab.org",
+			ID: &inetdiag.SockID{
+				SPort: 1,
+				SrcIP: "64.86.148.130",
+				DPort: 2,
+				DstIP: "1.0.0.1",
+			},
+			want: annotator.Annotations{
+				Server: minimalServerAnn("six01"),
+			},
+		},
+		{
+			name:     "success-empty-ipv6-with-ipv6-connection",
+			localIPs: []net.IP{net.ParseIP("2001:5a0:4300::2")},
+			provider: localRawfile,
+			hostname: "mlab1.six01.measurement-lab.org",
+			ID: &inetdiag.SockID{
+				SPort: 1,
+				SrcIP: "2001:5a0:4300::2",
+				DPort: 2,
+				DstIP: "2600::1",
+			},
+			want: annotator.Annotations{},
 		},
 		{
 			name:     "error-neither-ips-are-server",
@@ -88,6 +182,9 @@ func TestNew(t *testing.T) {
 			if err := g.Annotate(tt.ID, &ann); (err != nil) != tt.wantErr {
 				t.Errorf("srvannotator.Annotate() error = %v, wantErr %v", err, tt.wantErr)
 			}
+			if diff := deep.Equal(ann, tt.want); diff != nil {
+				t.Errorf("Annotate() failed; %s", strings.Join(diff, "\n"))
+			}
 		})
 	}
 }
@@ -104,7 +201,6 @@ func Test_srvannotator_load(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		localIPs []net.IP
 		provider rawfile.Provider
 		hostname string
 		ID       *inetdiag.SockID
@@ -113,7 +209,6 @@ func Test_srvannotator_load(t *testing.T) {
 	}{
 		{
 			name:     "success",
-			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: localRawfile,
 			hostname: "mlab1.lga03.measurement-lab.org",
 			want: &annotator.ServerAnnotations{
@@ -136,29 +231,52 @@ func Test_srvannotator_load(t *testing.T) {
 			},
 		},
 		{
+			name:     "success-no-six",
+			provider: localRawfile,
+			hostname: "mlab1.six01.measurement-lab.org",
+			want: &annotator.ServerAnnotations{
+				Site:    "six01",
+				Machine: "mlab1",
+				Geo: &annotator.Geolocation{
+					City: "New York",
+				},
+				Network: &annotator.Network{
+					ASName: "TATA COMMUNICATIONS (AMERICA) INC",
+				},
+			},
+		},
+		{
+			name:     "error-bad-ipv4",
+			provider: localRawfile,
+			hostname: "mlab1.bad04.measurement-lab.org",
+			wantErr:  true,
+		},
+		{
+			name:     "error-bad-ipv6",
+			provider: localRawfile,
+			hostname: "mlab1.bad06.measurement-lab.org",
+			wantErr:  true,
+		},
+		{
 			name:     "error-loading-provider",
-			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: &badProvider{fmt.Errorf("Fake load error")},
 			hostname: "mlab1.lga03.measurement-lab.org",
 			wantErr:  true,
 		},
 		{
 			name:     "error-corrupt-json",
-			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: corruptFile,
 			hostname: "mlab1.lga03.measurement-lab.org",
 			wantErr:  true,
 		},
 		{
 			name:     "error-bad-hostname",
-			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: localRawfile,
 			hostname: "this-is-not-a-hostname",
 			wantErr:  true,
 		},
 		{
 			name:     "error-hostname-not-in-annotations",
-			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: localRawfile,
 			hostname: "mlab1.none0.measurement-lab.org",
 			wantErr:  true,
@@ -169,7 +287,6 @@ func Test_srvannotator_load(t *testing.T) {
 			g := &siteAnnotator{
 				siteinfoSource: tt.provider,
 				hostname:       tt.hostname,
-				localIPs:       tt.localIPs,
 			}
 			ctx := context.Background()
 			an, err := g.load(ctx)

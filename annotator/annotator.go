@@ -101,8 +101,8 @@ type ServerAnnotations struct {
 type Annotations struct {
 	UUID      string
 	Timestamp time.Time
-	Server    ServerAnnotations `bigquery:"server"` // Use Standard Top-Level Column names.
-	Client    ClientAnnotations `bigquery:"client"` // Use Standard Top-Level Column names.
+	Server    ServerAnnotations `json:",omitempty" bigquery:"server"` // Use Standard Top-Level Column names.
+	Client    ClientAnnotations `json:",omitempty" bigquery:"client"` // Use Standard Top-Level Column names.
 }
 
 // Annotator is the interface that all systems that want to add metadata should implement.
