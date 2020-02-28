@@ -22,6 +22,8 @@ type siteAnnotator struct {
 	siteinfoSource rawfile.Provider
 	hostname       string
 	server         *annotator.ServerAnnotations
+	v4             net.IPNet
+	v6             net.IPNet
 }
 
 // ErrNotFound is generated when the given hostname cannot be found in the
@@ -61,8 +63,39 @@ func (g *siteAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 }
 
 func (g *siteAnnotator) annotate(src string, server *annotator.ServerAnnotations) {
-	// TODO: verify that the given IP actually matches the public server IP block.
-	*server = *g.server
+	n := net.ParseIP(src)
+	if g.v4.Contains(n) || g.v6.Contains(n) {
+		// NOTE: this will not annotate private IP addrs.
+		*server = *g.server
+	}
+}
+
+type siteinfoAnnotation struct {
+	Name    string
+	Network struct {
+		IPv4 string
+		IPv6 string
+	}
+	Annotation annotator.ServerAnnotations
+}
+
+func parseCIDR(v4, v6 string) (net.IPNet, net.IPNet, error) {
+	var v4ret, v6ret net.IPNet
+	_, v4net, err := net.ParseCIDR(v4)
+	if err != nil && v4 != "" {
+		return v4ret, v6ret, err
+	}
+	if v4 != "" {
+		v4ret = *v4net
+	}
+	_, v6net, err := net.ParseCIDR(v6)
+	if err != nil && v6 != "" {
+		return v4ret, v6ret, err
+	}
+	if v6 != "" {
+		v6ret = *v6net
+	}
+	return v4ret, v6ret, nil
 }
 
 // load unconditionally loads siteinfo dataset and returns them.
@@ -71,7 +104,7 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 	if err != nil {
 		return nil, err
 	}
-	var s []annotator.ServerAnnotations
+	var s []siteinfoAnnotation
 	var result annotator.ServerAnnotations
 	err = json.Unmarshal(js, &s)
 	if err != nil {
@@ -83,9 +116,13 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 	}
 	site := f[1]
 	for i := range s {
-		if s[i].Site == site {
-			s[i].Machine = f[0]
-			result = s[i] // Copy out of array.
+		if s[i].Name == site {
+			result = s[i].Annotation // Copy out of array.
+			result.Machine = f[0]
+			g.v4, g.v6, err = parseCIDR(s[i].Network.IPv4, s[i].Network.IPv6)
+			if err != nil {
+				return nil, err
+			}
 			return &result, nil
 		}
 	}
