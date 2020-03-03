@@ -15,10 +15,11 @@ import (
 	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
-// ReloadingAnnotator is just a regular annotator with a Reload method.
-type ReloadingAnnotator interface {
+// GeoAnnotator is just a regular annotator with a Reload method and an AnnotateIP method.
+type GeoAnnotator interface {
 	annotator.Annotator
 	Reload(context.Context)
+	AnnotateIP(ip net.IP, geo **annotator.Geolocation) error
 }
 
 // geoannotator is the central struct for this module.
@@ -58,6 +59,10 @@ func (g *geoannotator) annotate(src string, geo **annotator.Geolocation) error {
 	if ip == nil {
 		return fmt.Errorf("failed to parse IP %q", src)
 	}
+	return g.AnnotateIP(ip, geo)
+}
+
+func (g *geoannotator) AnnotateIP(ip net.IP, geo **annotator.Geolocation) error {
 	record, err := g.maxmind.City(ip)
 	if err != nil {
 		return err
@@ -67,7 +72,7 @@ func (g *geoannotator) annotate(src string, geo **annotator.Geolocation) error {
 	// geoip2 package returns an empty result. May be fixed in a future version:
 	// https://github.com/oschwald/geoip2-golang/issues/32
 	if isEmpty(record) {
-		return fmt.Errorf("not found %q", src)
+		return fmt.Errorf("not found %q", ip.String())
 	}
 
 	tmp := &annotator.Geolocation{
@@ -132,7 +137,7 @@ func (g *geoannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 // New makes a new Annotator that uses IP addresses to generate geolocation and
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
-func New(ctx context.Context, geo rawfile.Provider, localIPs []net.IP) ReloadingAnnotator {
+func New(ctx context.Context, geo rawfile.Provider, localIPs []net.IP) GeoAnnotator {
 	g := &geoannotator{
 		backingDataSource: geo,
 		localIPs:          localIPs,
