@@ -2,6 +2,7 @@ package geoannotator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -42,9 +43,9 @@ func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 
 	switch dir {
 	case annotator.DstIsServer:
-		err = g.annotate(ID.SrcIP, &annotations.Client.Geo)
+		err = g.annotateHoldingLock(ID.SrcIP, &annotations.Client.Geo)
 	case annotator.SrcIsServer:
-		err = g.annotate(ID.DstIP, &annotations.Client.Geo)
+		err = g.annotateHoldingLock(ID.DstIP, &annotations.Client.Geo)
 	}
 	if err != nil {
 		return annotator.ErrNoAnnotation
@@ -54,15 +55,24 @@ func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 
 var emptyResult = geoip2.City{}
 
-func (g *geoannotator) annotate(src string, geo **annotator.Geolocation) error {
+func (g *geoannotator) annotateHoldingLock(src string, geo **annotator.Geolocation) error {
 	ip := net.ParseIP(src)
 	if ip == nil {
 		return fmt.Errorf("failed to parse IP %q", src)
 	}
-	return g.AnnotateIP(ip, geo)
+	return g.annotateIPHoldingLock(ip, geo)
 }
 
 func (g *geoannotator) AnnotateIP(ip net.IP, geo **annotator.Geolocation) error {
+	g.mut.RLock()
+	defer g.mut.RUnlock()
+	return g.annotateIPHoldingLock(ip, geo)
+}
+
+func (g *geoannotator) annotateIPHoldingLock(ip net.IP, geo **annotator.Geolocation) error {
+	if ip == nil {
+		return errors.New("can't annotate nil IP")
+	}
 	record, err := g.maxmind.City(ip)
 	if err != nil {
 		return err
@@ -71,8 +81,14 @@ func (g *geoannotator) AnnotateIP(ip net.IP, geo **annotator.Geolocation) error 
 	// Check for empty results because "not found" is not an error. Instead the
 	// geoip2 package returns an empty result. May be fixed in a future version:
 	// https://github.com/oschwald/geoip2-golang/issues/32
+	//
+	// "Not found" in a well-functioning database should not be an error.
+	// Instead, it is an accurate reflection of data that is missing.
 	if isEmpty(record) {
-		return fmt.Errorf("not found %q", ip.String())
+		*geo = &annotator.Geolocation{
+			Missing: true,
+		}
+		return nil
 	}
 
 	tmp := &annotator.Geolocation{

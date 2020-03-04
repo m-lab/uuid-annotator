@@ -92,6 +92,9 @@ func TestServerAndClientE2E(t *testing.T) {
 				Network: &annotator.Network{
 					Missing: true,
 				},
+				Geo: &annotator.Geolocation{
+					Missing: true,
+				},
 			},
 		},
 		{
@@ -99,6 +102,9 @@ func TestServerAndClientE2E(t *testing.T) {
 			ip:   net.ParseIP("::1"),
 			want: annotator.ClientAnnotations{
 				Network: &annotator.Network{
+					Missing: true,
+				},
+				Geo: &annotator.Geolocation{
 					Missing: true,
 				},
 			},

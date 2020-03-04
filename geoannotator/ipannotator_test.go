@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/m-lab/go/pretty"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
@@ -69,6 +70,13 @@ func TestIPAnnotationS2C(t *testing.T) {
 	}
 	if math.Abs(ann.Client.Geo.Latitude-51.75) > .01 {
 		t.Error("Bad Client latitude:", ann.Client.Geo.Latitude, "!~=", 51.75)
+	}
+
+	ann2 := &annotator.Annotations{}
+	g.AnnotateIP(net.ParseIP(remoteIP), &ann2.Client.Geo)
+
+	if diff := deep.Equal(ann, ann2); diff != nil {
+		log.Println("Annotate and AnnotateIP should do the same thing, but they differ:", diff)
 	}
 }
 
@@ -131,7 +139,7 @@ func TestIPAnnotationBadDst(t *testing.T) {
 	conn := &inetdiag.SockID{
 		SrcIP:  "1.0.0.1",
 		SPort:  1,
-		DstIP:  "0.0.0.0", // A local IP
+		DstIP:  "this is not an IP address",
 		DPort:  2,
 		Cookie: 4,
 	}
@@ -140,11 +148,11 @@ func TestIPAnnotationBadDst(t *testing.T) {
 	err := g.Annotate(conn, ann)
 
 	if err == nil {
-		t.Errorf("Annotate succeeded with a bad IP: %q", conn.SrcIP)
+		t.Errorf("Annotate succeeded with a bad IP: %q", conn.DstIP)
 	}
 }
 
-func TestIPAnnotationUknownDirection(t *testing.T) {
+func TestIPAnnotationUnknownDirection(t *testing.T) {
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
 	g := New(context.Background(), localRawfile, localaddrs)
 
@@ -179,9 +187,9 @@ func TestIPAnnotationUnknownIP(t *testing.T) {
 
 	ann := &annotator.Annotations{}
 	err := g.Annotate(conn, ann)
-	if !errors.Is(err, annotator.ErrNoAnnotation) {
+	if err != nil || ann.Client.Geo == nil || !ann.Client.Geo.Missing {
 		pretty.Print(ann)
-		t.Error("Should have had an ErrNoAnnotation error due to IP missing from our dataset, but got", err)
+		t.Error("Should have had a client annotation with everything set to Missing, but got", err)
 	}
 }
 

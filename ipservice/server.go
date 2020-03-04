@@ -24,6 +24,18 @@ type handler struct {
 	geo geoannotator.GeoAnnotator
 }
 
+func logOnError(err error, args ...interface{}) {
+	if err != nil {
+		log.Println(args...)
+	}
+}
+
+func logOnNil(ptr interface{}, args ...interface{}) {
+	if ptr == nil {
+		log.Println(args...)
+	}
+}
+
 func (h *handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	ipstring := req.URL.Query().Get("ip")
 	ip := net.ParseIP(ipstring)
@@ -35,10 +47,11 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 	a := &annotator.ClientAnnotations{}
 	if h.asn != nil {
-		a.Network = h.asn.AnnotateIP(ipstring) // Should this error be ignored?
+		a.Network = h.asn.AnnotateIP(ipstring) // Should nil returns be ignored?
 	}
 	if h.geo != nil {
-		h.geo.AnnotateIP(ip, &a.Geo) // Should this error be ignored?
+		err := h.geo.AnnotateIP(ip, &a.Geo)
+		logOnError(err, "Could not GEO annotate", ip)
 	}
 
 	b, err := json.Marshal(a)

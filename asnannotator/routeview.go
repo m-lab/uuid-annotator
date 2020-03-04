@@ -60,14 +60,20 @@ func (a *asnAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	// TODO: annotate the server IP with siteinfo data.
 	switch dir {
 	case annotator.DstIsServer:
-		annotations.Client.Network = a.AnnotateIP(ID.SrcIP)
+		annotations.Client.Network = a.annotateIPHoldingLock(ID.SrcIP)
 	case annotator.SrcIsServer:
-		annotations.Client.Network = a.AnnotateIP(ID.DstIP)
+		annotations.Client.Network = a.annotateIPHoldingLock(ID.DstIP)
 	}
 	return nil
 }
 
 func (a *asnAnnotator) AnnotateIP(src string) *annotator.Network {
+	a.m.RLock()
+	defer a.m.RUnlock()
+	return a.annotateIPHoldingLock(src)
+}
+
+func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 	ann := &annotator.Network{}
 	// Check IPv4 first.
 	ipnet, err := a.asn4.Search(src)
