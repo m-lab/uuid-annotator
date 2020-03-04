@@ -110,7 +110,7 @@ func NewServer(sockfilename string, asn asnannotator.ASNAnnotator, geo geoannota
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/ip", h)
+	mux.Handle("/v1/annotate/ip", h)
 	srv := &http.Server{
 		Handler: mux,
 	}

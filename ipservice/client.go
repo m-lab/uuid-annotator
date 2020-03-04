@@ -39,7 +39,7 @@ type client struct {
 }
 
 func (c *client) Annotate(ctx context.Context, ip net.IP) (*annotator.ClientAnnotations, error) {
-	u := "http://unix/ip?ip=" + ip.String()
+	u := "http://unix/v1/annotate/ip?ip=" + ip.String()
 	resp, err := c.httpc.Get(u)
 	if err != nil {
 		metrics.ClientRPCCount.WithLabelValues("get_error").Inc()
