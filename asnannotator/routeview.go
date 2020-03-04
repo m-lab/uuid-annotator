@@ -14,10 +14,11 @@ import (
 	"github.com/m-lab/uuid-annotator/routeview"
 )
 
-// ReloadingAnnotator is just a regular annotator with a Reload method.
-type ReloadingAnnotator interface {
+// ASNAnnotator is just a regular annotator with a Reload method and an AnnotateIP method.
+type ASNAnnotator interface {
 	annotator.Annotator
 	Reload(context.Context)
+	AnnotateIP(src string) *annotator.Network
 }
 
 // asnAnnotator is the central struct for this module.
@@ -32,7 +33,7 @@ type asnAnnotator struct {
 
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
 // that IP based on the current copy of RouteViews data stored in the given providers.
-func New(ctx context.Context, as4 rawfile.Provider, as6 rawfile.Provider, localIPs []net.IP) ReloadingAnnotator {
+func New(ctx context.Context, as4 rawfile.Provider, as6 rawfile.Provider, localIPs []net.IP) ASNAnnotator {
 	a := &asnAnnotator{
 		as4:      as4,
 		as6:      as6,
@@ -59,14 +60,20 @@ func (a *asnAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 	// TODO: annotate the server IP with siteinfo data.
 	switch dir {
 	case annotator.DstIsServer:
-		annotations.Client.Network = a.annotate(ID.SrcIP)
+		annotations.Client.Network = a.annotateIPHoldingLock(ID.SrcIP)
 	case annotator.SrcIsServer:
-		annotations.Client.Network = a.annotate(ID.DstIP)
+		annotations.Client.Network = a.annotateIPHoldingLock(ID.DstIP)
 	}
 	return nil
 }
 
-func (a *asnAnnotator) annotate(src string) *annotator.Network {
+func (a *asnAnnotator) AnnotateIP(src string) *annotator.Network {
+	a.m.RLock()
+	defer a.m.RUnlock()
+	return a.annotateIPHoldingLock(src)
+}
+
+func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 	ann := &annotator.Network{}
 	// Check IPv4 first.
 	ipnet, err := a.asn4.Search(src)

@@ -31,4 +31,18 @@ var (
 		},
 		[]string{"md5"},
 	)
+	ServerRPCCount = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "uuid_annotator_server_rpcs_total",
+			Help: "The number of times the server-side of the RPC service has been called, and whether it was success or not",
+		},
+		[]string{"status"},
+	)
+	ClientRPCCount = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "uuid_annotator_client_rpcs_total",
+			Help: "The number of times the client-side of the RPC service has been called, and whether it was success or not",
+		},
+		[]string{"status"},
+	)
 )

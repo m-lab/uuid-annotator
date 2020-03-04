@@ -2,6 +2,7 @@ package geoannotator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -15,10 +16,11 @@ import (
 	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
-// ReloadingAnnotator is just a regular annotator with a Reload method.
-type ReloadingAnnotator interface {
+// GeoAnnotator is just a regular annotator with a Reload method and an AnnotateIP method.
+type GeoAnnotator interface {
 	annotator.Annotator
 	Reload(context.Context)
+	AnnotateIP(ip net.IP, geo **annotator.Geolocation) error
 }
 
 // geoannotator is the central struct for this module.
@@ -41,9 +43,9 @@ func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 
 	switch dir {
 	case annotator.DstIsServer:
-		err = g.annotate(ID.SrcIP, &annotations.Client.Geo)
+		err = g.annotateHoldingLock(ID.SrcIP, &annotations.Client.Geo)
 	case annotator.SrcIsServer:
-		err = g.annotate(ID.DstIP, &annotations.Client.Geo)
+		err = g.annotateHoldingLock(ID.DstIP, &annotations.Client.Geo)
 	}
 	if err != nil {
 		return annotator.ErrNoAnnotation
@@ -53,10 +55,23 @@ func (g *geoannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Anno
 
 var emptyResult = geoip2.City{}
 
-func (g *geoannotator) annotate(src string, geo **annotator.Geolocation) error {
+func (g *geoannotator) annotateHoldingLock(src string, geo **annotator.Geolocation) error {
 	ip := net.ParseIP(src)
 	if ip == nil {
 		return fmt.Errorf("failed to parse IP %q", src)
+	}
+	return g.annotateIPHoldingLock(ip, geo)
+}
+
+func (g *geoannotator) AnnotateIP(ip net.IP, geo **annotator.Geolocation) error {
+	g.mut.RLock()
+	defer g.mut.RUnlock()
+	return g.annotateIPHoldingLock(ip, geo)
+}
+
+func (g *geoannotator) annotateIPHoldingLock(ip net.IP, geo **annotator.Geolocation) error {
+	if ip == nil {
+		return errors.New("can't annotate nil IP")
 	}
 	record, err := g.maxmind.City(ip)
 	if err != nil {
@@ -66,8 +81,14 @@ func (g *geoannotator) annotate(src string, geo **annotator.Geolocation) error {
 	// Check for empty results because "not found" is not an error. Instead the
 	// geoip2 package returns an empty result. May be fixed in a future version:
 	// https://github.com/oschwald/geoip2-golang/issues/32
+	//
+	// "Not found" in a well-functioning database should not be an error.
+	// Instead, it is an accurate reflection of data that is missing.
 	if isEmpty(record) {
-		return fmt.Errorf("not found %q", src)
+		*geo = &annotator.Geolocation{
+			Missing: true,
+		}
+		return nil
 	}
 
 	tmp := &annotator.Geolocation{
@@ -132,7 +153,7 @@ func (g *geoannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 // New makes a new Annotator that uses IP addresses to generate geolocation and
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
-func New(ctx context.Context, geo rawfile.Provider, localIPs []net.IP) ReloadingAnnotator {
+func New(ctx context.Context, geo rawfile.Provider, localIPs []net.IP) GeoAnnotator {
 	g := &geoannotator{
 		backingDataSource: geo,
 		localIPs:          localIPs,

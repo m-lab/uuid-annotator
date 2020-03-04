@@ -43,6 +43,8 @@ type Geolocation struct {
 	Latitude         float64 `json:",omitempty"` // Latitude
 	Longitude        float64 `json:",omitempty"` // Longitude
 	AccuracyRadiusKm int64   `json:",omitempty"` // Geo2: Accuracy Radius (since 2018)
+
+	Missing bool `json:",omitempty"` // True when the Geolocation data is missing from MaxMind.
 }
 
 // We currently use CAIDA RouteView data to populate ASN annotations.

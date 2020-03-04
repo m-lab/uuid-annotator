@@ -166,6 +166,29 @@ func Test_asnAnnotator_Annotate(t *testing.T) {
 	}
 }
 
+func Test_asnAnnotator_AnnotateIP(t *testing.T) {
+
+	localV4 := "9.0.0.9"
+	localV6 := "2002::1"
+	localIPs = []net.IP{
+		net.ParseIP(localV4),
+		net.ParseIP(localV6),
+	}
+	ctx := context.Background()
+	a := New(ctx, local4Rawfile, local6Rawfile, localIPs)
+	got := a.AnnotateIP("2001:200::1")
+	want := annotator.Network{
+		CIDR:     "2001:200::/32",
+		ASNumber: 2500,
+		Systems: []annotator.System{
+			{ASNs: []uint32{2500}},
+		},
+	}
+	if diff := deep.Equal(*got, want); diff != nil {
+		log.Println("got!=want", diff)
+	}
+}
+
 type badProvider struct {
 	err error
 }
