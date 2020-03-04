@@ -64,10 +64,7 @@ func TestServerAndClientE2E(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		err := srv.Serve()
-		if err != http.ErrServerClosed {
-			t.Error("Bad error", err, "when we expected", http.ErrServerClosed)
-		}
+		rtx.Must(srv.Serve(), "Could not serve the annotator")
 		wg.Done()
 	}()
 

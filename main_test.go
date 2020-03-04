@@ -11,6 +11,7 @@ import (
 
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/eventsocket"
+	"github.com/m-lab/uuid-annotator/ipservice"
 )
 
 func TestMainSmokeTest(t *testing.T) {
@@ -22,6 +23,7 @@ func TestMainSmokeTest(t *testing.T) {
 	// Set up global variables.
 	mainCtx, mainCancel = context.WithCancel(context.Background())
 	*eventsocket.Filename = dir + "/eventsocket.sock"
+	*ipservice.SocketFilename = dir + "/ipannotator.sock"
 	rtx.Must(maxmindurl.Set("file:./testdata/fake.tar.gz"), "Failed to set maxmind url for testing")
 	rtx.Must(routeviewv4.Set("file:./testdata/RouteViewIPv4.tiny.gz"), "Failed to set routeview v4 url for testing")
 	rtx.Must(routeviewv6.Set("file:./testdata/RouteViewIPv6.tiny.gz"), "Failed to set routeview v6 url for testing")
