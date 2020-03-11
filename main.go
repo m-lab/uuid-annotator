@@ -18,6 +18,7 @@ import (
 	"github.com/m-lab/uuid-annotator/asnannotator"
 	"github.com/m-lab/uuid-annotator/geoannotator"
 	"github.com/m-lab/uuid-annotator/handler"
+	"github.com/m-lab/uuid-annotator/ipservice"
 	"github.com/m-lab/uuid-annotator/rawfile"
 	"github.com/m-lab/uuid-annotator/siteannotator"
 )
@@ -129,6 +130,23 @@ func main() {
 		eventsocket.MustRun(mainCtx, *eventsocket.Filename, h)
 		wg.Done()
 	}()
+
+	// Set up the local service to serve IP annotations as a local service on a
+	// local unix-domain socket.
+	if *ipservice.SocketFilename != "" {
+		ipsrv, err := ipservice.NewServer(*ipservice.SocketFilename, asn, geo)
+		rtx.Must(err, "Could not start up the local IP annotation service")
+		wg.Add(2)
+		go func() {
+			rtx.Must(ipsrv.Serve(), "Could not serve the local IP annotation service")
+			wg.Done()
+		}()
+		go func() {
+			<-mainCtx.Done()
+			ipsrv.Close()
+			wg.Done()
+		}()
+	}
 
 	wg.Wait()
 }

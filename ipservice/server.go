@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/m-lab/go/errorx"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/asnannotator"
@@ -72,7 +73,7 @@ type server struct {
 }
 
 func (s *server) Serve() error {
-	return s.srv.Serve(s.listener)
+	return errorx.Suppress(s.srv.Serve(s.listener), http.ErrServerClosed)
 }
 
 func (s *server) Close() error {

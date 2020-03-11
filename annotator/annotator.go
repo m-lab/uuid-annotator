@@ -73,6 +73,8 @@ type Network struct {
 	Systems []System `json:",omitempty"`
 }
 
+// FirstASN gives the ASN that should be used by systems that don't want to deal
+// with the complication of MOAS IP addresses.
 func (n *Network) FirstASN() uint32 {
 	if n.Systems == nil || len(n.Systems) == 0 {
 		return 0
