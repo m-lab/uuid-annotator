@@ -231,6 +231,29 @@ func Test_srvannotator_load(t *testing.T) {
 			},
 		},
 		{
+			name:     "success-project-flat-name",
+			provider: localRawfile,
+			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			want: &annotator.ServerAnnotations{
+				Site:    "lga03",
+				Machine: "mlab1",
+				Geo: &annotator.Geolocation{
+					ContinentCode: "NA",
+					CountryCode:   "US",
+					City:          "New York",
+					Latitude:      40.7667,
+					Longitude:     -73.8667,
+				},
+				Network: &annotator.Network{
+					ASNumber: 6453,
+					ASName:   "TATA COMMUNICATIONS (AMERICA) INC",
+					Systems: []annotator.System{
+						{ASNs: []uint32{6453}},
+					},
+				},
+			},
+		},
+		{
 			name:     "success-no-six",
 			provider: localRawfile,
 			hostname: "mlab1.six01.measurement-lab.org",
@@ -273,6 +296,12 @@ func Test_srvannotator_load(t *testing.T) {
 			name:     "error-bad-hostname",
 			provider: localRawfile,
 			hostname: "this-is-not-a-hostname",
+			wantErr:  true,
+		},
+		{
+			name:     "error-bad-name-separator",
+			provider: localRawfile,
+			hostname: "mlab1=lga03.mlab-oti.measurement-lab.org",
 			wantErr:  true,
 		},
 		{

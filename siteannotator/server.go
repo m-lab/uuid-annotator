@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
-	"strings"
+	"regexp"
 	"sync"
 
 	"github.com/m-lab/go/rtx"
@@ -29,6 +29,9 @@ type siteAnnotator struct {
 // ErrHostnameNotFound is generated when the given hostname cannot be found in the
 // downloaded siteinfo annotations.
 var ErrHostnameNotFound = errors.New("Hostname Not Found")
+
+// ErrInvalidHostname is generated when the given hostname appears to be invalid.
+var ErrInvalidHostname = errors.New("Hostname Invalid")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
 func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []net.IP) annotator.Annotator {
@@ -110,15 +113,16 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 	if err != nil {
 		return nil, err
 	}
-	f := strings.Split(g.hostname, ".")
-	if len(f) < 2 {
-		return nil, ErrHostnameNotFound
+	re := regexp.MustCompile(`^(mlab\d)[.-]([a-z]{3}\d[\dtc])`)
+	matches := re.FindAllStringSubmatch(g.hostname, -1)
+	if len(matches) != 1 || len(matches[0]) != 3 {
+		return nil, ErrInvalidHostname
 	}
-	site := f[1]
+	site := matches[0][2]
 	for i := range s {
 		if s[i].Name == site {
 			result = s[i].Annotation // Copy out of array.
-			result.Machine = f[0]
+			result.Machine = matches[0][1]
 			g.v4, g.v6, err = parseCIDR(s[i].Network.IPv4, s[i].Network.IPv6)
 			if err != nil {
 				return nil, err
