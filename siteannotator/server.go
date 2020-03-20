@@ -110,14 +110,14 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 	if err != nil {
 		return nil, err
 	}
-	host, err := host.Parse(g.hostname)
+	h, err := host.Parse(g.hostname)
 	if err != nil {
 		return nil, err
 	}
 	for i := range s {
-		if s[i].Name == host.Site {
+		if s[i].Name == h.Site {
 			result = s[i].Annotation // Copy out of array.
-			result.Machine = host.Machine
+			result.Machine = h.Machine
 			g.v4, g.v6, err = parseCIDR(s[i].Network.IPv4, s[i].Network.IPv6)
 			if err != nil {
 				return nil, err
