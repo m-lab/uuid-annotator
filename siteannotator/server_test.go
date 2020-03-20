@@ -108,7 +108,7 @@ func TestNew(t *testing.T) {
 			name:     "success-empty-ipv4-with-ipv6-connection",
 			localIPs: []net.IP{net.ParseIP("2001:5a0:4300::2")},
 			provider: localRawfile,
-			hostname: "mlab1.four0.measurement-lab.org",
+			hostname: "mlab1.six02.measurement-lab.org",
 			ID: &inetdiag.SockID{
 				SPort: 1,
 				SrcIP: "2001:5a0:4300::2",
@@ -116,14 +116,14 @@ func TestNew(t *testing.T) {
 				DstIP: "2600::1",
 			},
 			want: annotator.Annotations{
-				Server: minimalServerAnn("four0"),
+				Server: minimalServerAnn("six02"),
 			},
 		},
 		{
 			name:     "success-empty-ipv4-with-ipv4-connection",
 			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: localRawfile,
-			hostname: "mlab1.four0.measurement-lab.org",
+			hostname: "mlab1.six02.measurement-lab.org",
 			ID: &inetdiag.SockID{
 				SPort: 1,
 				SrcIP: "64.86.148.137",
@@ -231,6 +231,29 @@ func Test_srvannotator_load(t *testing.T) {
 			},
 		},
 		{
+			name:     "success-project-flat-name",
+			provider: localRawfile,
+			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			want: &annotator.ServerAnnotations{
+				Site:    "lga03",
+				Machine: "mlab1",
+				Geo: &annotator.Geolocation{
+					ContinentCode: "NA",
+					CountryCode:   "US",
+					City:          "New York",
+					Latitude:      40.7667,
+					Longitude:     -73.8667,
+				},
+				Network: &annotator.Network{
+					ASNumber: 6453,
+					ASName:   "TATA COMMUNICATIONS (AMERICA) INC",
+					Systems: []annotator.System{
+						{ASNs: []uint32{6453}},
+					},
+				},
+			},
+		},
+		{
 			name:     "success-no-six",
 			provider: localRawfile,
 			hostname: "mlab1.six01.measurement-lab.org",
@@ -273,6 +296,12 @@ func Test_srvannotator_load(t *testing.T) {
 			name:     "error-bad-hostname",
 			provider: localRawfile,
 			hostname: "this-is-not-a-hostname",
+			wantErr:  true,
+		},
+		{
+			name:     "error-bad-name-separator",
+			provider: localRawfile,
+			hostname: "mlab1=lga03.mlab-oti.measurement-lab.org",
 			wantErr:  true,
 		},
 		{

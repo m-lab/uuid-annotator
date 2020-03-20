@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
-	"strings"
 	"sync"
 
+	"github.com/m-lab/go/host"
 	"github.com/m-lab/go/rtx"
 
 	"github.com/m-lab/tcp-info/inetdiag"
@@ -110,15 +110,14 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 	if err != nil {
 		return nil, err
 	}
-	f := strings.Split(g.hostname, ".")
-	if len(f) < 2 {
-		return nil, ErrHostnameNotFound
+	h, err := host.Parse(g.hostname)
+	if err != nil {
+		return nil, err
 	}
-	site := f[1]
 	for i := range s {
-		if s[i].Name == site {
+		if s[i].Name == h.Site {
 			result = s[i].Annotation // Copy out of array.
-			result.Machine = f[0]
+			result.Machine = h.Machine
 			g.v4, g.v6, err = parseCIDR(s[i].Network.IPv4, s[i].Network.IPv6)
 			if err != nil {
 				return nil, err
