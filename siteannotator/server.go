@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net"
-	"regexp"
 	"sync"
 
 	"github.com/m-lab/go/host"
