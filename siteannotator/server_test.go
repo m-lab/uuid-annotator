@@ -108,7 +108,7 @@ func TestNew(t *testing.T) {
 			name:     "success-empty-ipv4-with-ipv6-connection",
 			localIPs: []net.IP{net.ParseIP("2001:5a0:4300::2")},
 			provider: localRawfile,
-			hostname: "mlab1.four0.measurement-lab.org",
+			hostname: "mlab1.six02.measurement-lab.org",
 			ID: &inetdiag.SockID{
 				SPort: 1,
 				SrcIP: "2001:5a0:4300::2",
@@ -116,14 +116,14 @@ func TestNew(t *testing.T) {
 				DstIP: "2600::1",
 			},
 			want: annotator.Annotations{
-				Server: minimalServerAnn("four0"),
+				Server: minimalServerAnn("six02"),
 			},
 		},
 		{
 			name:     "success-empty-ipv4-with-ipv4-connection",
 			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: localRawfile,
-			hostname: "mlab1.four0.measurement-lab.org",
+			hostname: "mlab1.six02.measurement-lab.org",
 			ID: &inetdiag.SockID{
 				SPort: 1,
 				SrcIP: "64.86.148.137",
