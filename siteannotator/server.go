@@ -111,7 +111,9 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 		return nil, err
 	}
 	host, err := host.Parse(g.hostname)
-	rtx.Must(err, "Error parsing hostname: %s (%v)", g.hostname, err)
+	if err != nil {
+		return nil, err
+	}
 	for i := range s {
 		if s[i].Name == host.Site {
 			result = s[i].Annotation // Copy out of array.
