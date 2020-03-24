@@ -83,6 +83,11 @@ func TestServerAndClientE2E(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "Bad ips",
+			ips:     []string{"this is not an ip address"},
+			wantErr: true,
+		},
+		{
 			name: "Localhost-v4",
 			ips:  []string{"127.0.0.1"},
 			want: map[string]*annotator.ClientAnnotations{

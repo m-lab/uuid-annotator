@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/m-lab/uuid-annotator/annotator"
@@ -44,9 +45,7 @@ type client struct {
 func (c *client) Annotate(ctx context.Context, ips []string) (map[string]*annotator.ClientAnnotations, error) {
 	ipstrings := []string{}
 	for _, ip := range ips {
-		if net.ParseIP(ip) != nil {
-			ipstrings = append(ipstrings, "ip="+ip)
-		}
+		ipstrings = append(ipstrings, "ip="+url.QueryEscape(ip))
 	}
 	u := "http://unix/v1/annotate/ips?" + strings.Join(ipstrings, ",")
 	resp, err := c.httpc.Get(u)
