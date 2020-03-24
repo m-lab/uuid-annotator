@@ -307,7 +307,7 @@ func Test_srvannotator_load(t *testing.T) {
 		{
 			name:     "error-hostname-not-in-annotations",
 			provider: localRawfile,
-			hostname: "mlab1.none0.measurement-lab.org",
+			hostname: "mlab1.abc01.measurement-lab.org",
 			wantErr:  true,
 		},
 	}

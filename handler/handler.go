@@ -5,9 +5,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"log"
-	"os"
 	"time"
 
 	"github.com/m-lab/go/rtx"
@@ -15,6 +13,12 @@ import (
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/metrics"
+	"github.com/spf13/afero"
+)
+
+var (
+	fs     = afero.NewOsFs()
+	fsutil = &afero.Afero{Fs: fs}
 )
 
 type job struct {
@@ -30,13 +34,13 @@ func (j *job) WriteFile(dir string, data *annotator.Annotations) error {
 
 	// Create the necessary subdirectories.
 	dir = dir + j.timestamp.Format("/2006/01/02/")
-	err = os.MkdirAll(dir, 0777)
+	err = fs.MkdirAll(dir, 0777)
 	if err != nil {
 		return err
 	}
 
 	// Write the serialized data
-	return ioutil.WriteFile(dir+j.uuid+".json", contents, 0666)
+	return fsutil.WriteFile(dir+j.uuid+".json", contents, 0666)
 }
 
 type handler struct {
