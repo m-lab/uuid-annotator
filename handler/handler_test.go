@@ -1,4 +1,4 @@
-package handler_test
+package handler
 
 import (
 	"context"
@@ -11,12 +11,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spf13/afero"
+
 	"github.com/m-lab/tcp-info/inetdiag"
 
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/eventsocket"
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/handler"
 )
 
 func TestHandlerWithNoAnnotatorsE2E(t *testing.T) {
@@ -34,7 +35,7 @@ func TestHandlerWithNoAnnotatorsE2E(t *testing.T) {
 	// Create the handler to test and connect it to the server.
 	hCtx, hCancel := context.WithCancel(context.Background())
 	defer hCancel()
-	h := handler.New(dir, 1, nil)
+	h := New(dir, 1, nil)
 	go eventsocket.MustRun(hCtx, dir+"/tcpevents.sock", h)
 
 	// Give the client some time to connect before we send events down the pipe.
@@ -110,18 +111,50 @@ func (badannotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Annotat
 	return errors.New("an error for testing")
 }
 
+func setFs(newfs afero.Fs) (cleanup func()) {
+	oldfs := fs
+	cleanup = func() {
+		fs = oldfs
+		fsutil = &afero.Afero{Fs: oldfs}
+	}
+	fs = newfs
+	fsutil = &afero.Afero{Fs: newfs}
+	return cleanup
+}
+
+type errFS struct {
+	callback func()
+}
+
+var errForTesting = errors.New("Error for testing")
+
+func (e *errFS) Create(name string) (afero.File, error)       { e.callback(); return nil, errForTesting }
+func (e *errFS) Mkdir(name string, perm os.FileMode) error    { e.callback(); return errForTesting }
+func (e *errFS) MkdirAll(path string, perm os.FileMode) error { e.callback(); return errForTesting }
+func (e *errFS) Open(name string) (afero.File, error)         { e.callback(); return nil, errForTesting }
+func (e *errFS) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
+	e.callback()
+	return nil, errForTesting
+}
+func (e *errFS) Remove(name string) error                  { e.callback(); return errForTesting }
+func (e *errFS) RemoveAll(path string) error               { e.callback(); return errForTesting }
+func (e *errFS) Rename(oldname, newname string) error      { e.callback(); return errForTesting }
+func (e *errFS) Stat(name string) (os.FileInfo, error)     { e.callback(); return nil, errForTesting }
+func (e *errFS) Name() string                              { return "" }
+func (e *errFS) Chmod(name string, mode os.FileMode) error { e.callback(); return errForTesting }
+func (e *errFS) Chtimes(name string, atime time.Time, mtime time.Time) error {
+	e.callback()
+	return errForTesting
+}
+
 func TestErrorCases(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
+	defer setFs(&errFS{cancel})()
+	defer cancel()
+
 	// A handler with a bad directory and a bad annotator.
-	h := handler.New("/../thisisimpossible/", 1, []annotator.Annotator{badannotator{}})
+	h := New("/../thisisimpossible/", 1, []annotator.Annotator{badannotator{}})
 	h.Open(ctx, time.Now(), "UUID_IS_THIS", &inetdiag.SockID{})
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		h.ProcessIncomingRequests(ctx)
-		wg.Done()
-	}()
-	time.Sleep(time.Millisecond)
-	cancel()
-	// No crash and full coverage == success
+	h.ProcessIncomingRequests(ctx)
+	// No crash, successful termination and full coverage == success
 }

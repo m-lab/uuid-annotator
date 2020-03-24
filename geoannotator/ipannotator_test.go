@@ -78,6 +78,13 @@ func TestIPAnnotationS2C(t *testing.T) {
 	if diff := deep.Equal(ann, ann2); diff != nil {
 		log.Println("Annotate and AnnotateIP should do the same thing, but they differ:", diff)
 	}
+
+	// Test nil IP
+	ann3 := &annotator.Annotations{}
+	err := g.AnnotateIP(nil, &ann3.Client.Geo)
+	if err == nil {
+		t.Error("Should have had a non-nil error from a nil IP")
+	}
 }
 
 func TestIPAnnotationC2S(t *testing.T) {
