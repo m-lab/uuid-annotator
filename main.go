@@ -29,6 +29,7 @@ var (
 	maxmindurl      = flagx.URL{}
 	routeviewv4     = flagx.URL{}
 	routeviewv6     = flagx.URL{}
+	asnameurl       = flagx.URL{}
 	siteinfo        = flagx.URL{}
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
@@ -93,7 +94,9 @@ func main() {
 	rtx.Must(err, "Could not load routeview v4 URL")
 	p6, err := rawfile.FromURL(mainCtx, routeviewv6.URL)
 	rtx.Must(err, "Could not load routeview v6 URL")
-	asn := asnannotator.New(mainCtx, p4, p6, localIPs)
+	asnames, err := rawfile.FromURL(mainCtx, asnameurl.URL)
+	rtx.Must(err, "Could not load AS names URL")
+	asn := asnannotator.New(mainCtx, p4, p6, asnames, localIPs)
 
 	js, err := rawfile.FromURL(mainCtx, siteinfo.URL)
 	rtx.Must(err, "Could not load siteinfo URL")

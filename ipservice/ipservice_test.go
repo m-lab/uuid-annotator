@@ -38,11 +38,16 @@ func init() {
 	rtx.Must(err, "Could not parse URL")
 	local6Rawfile, err := rawfile.FromURL(context.Background(), u6)
 	rtx.Must(err, "Could not create rawfile.Provider")
+	as, err := url.Parse("file:../testdata/asnames.ipinfo.json")
+	rtx.Must(err, "Could not parse URL")
+	localASNamesfile, err := rawfile.FromURL(context.Background(), as)
+	rtx.Must(err, "Could not create rawfile.Provider")
+
 	localIPs := []net.IP{
 		net.ParseIP("9.0.0.9"),
 		net.ParseIP("2002::1"),
 	}
-	asn = asnannotator.New(ctx, local4Rawfile, local6Rawfile, localIPs)
+	asn = asnannotator.New(ctx, local4Rawfile, local6Rawfile, localASNamesfile, localIPs)
 
 	// Set up geo annotator.
 	u, err := url.Parse("file:../testdata/fake.tar.gz")

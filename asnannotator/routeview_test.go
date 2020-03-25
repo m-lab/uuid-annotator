@@ -20,6 +20,7 @@ import (
 
 var local4Rawfile rawfile.Provider
 var local6Rawfile rawfile.Provider
+var localASNamesfile rawfile.Provider
 var corruptFile rawfile.Provider
 var localIPs []net.IP
 
@@ -33,6 +34,11 @@ func init() {
 	u6, err := url.Parse("file:../testdata/RouteViewIPv6.pfx2as.gz")
 	rtx.Must(err, "Could not parse URL")
 	local6Rawfile, err = rawfile.FromURL(context.Background(), u6)
+	rtx.Must(err, "Could not create rawfile.Provider")
+
+	asn, err := url.Parse("file:../testdata/asnames.ipinfo.json")
+	rtx.Must(err, "Could not parse URL")
+	localASNamesfile, err = rawfile.FromURL(context.Background(), asn)
 	rtx.Must(err, "Could not create rawfile.Provider")
 
 	cor, err := url.Parse("file:../testdata/corrupt.gz")
@@ -153,8 +159,7 @@ func Test_asnAnnotator_Annotate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			a := New(ctx, local4Rawfile, local6Rawfile, localIPs)
-
+			a := New(ctx, local4Rawfile, local6Rawfile, localASNamesfile, localIPs)
 			ann := &annotator.Annotations{}
 			if err := a.Annotate(tt.ID, ann); (err != nil) != tt.wantErr {
 				t.Errorf("asnAnnotator.Annotate() error = %v, wantErr %v", err, tt.wantErr)
@@ -175,7 +180,7 @@ func Test_asnAnnotator_AnnotateIP(t *testing.T) {
 		net.ParseIP(localV6),
 	}
 	ctx := context.Background()
-	a := New(ctx, local4Rawfile, local6Rawfile, localIPs)
+	a := New(ctx, local4Rawfile, local6Rawfile, localASNamesfile, localIPs)
 	got := a.AnnotateIP("2001:200::1")
 	want := annotator.Network{
 		CIDR:     "2001:200::/32",
