@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/metrics"
@@ -43,11 +42,11 @@ type client struct {
 }
 
 func (c *client) Annotate(ctx context.Context, ips []string) (map[string]*annotator.ClientAnnotations, error) {
-	ipstrings := []string{}
+	ipvalues := url.Values{}
 	for _, ip := range ips {
-		ipstrings = append(ipstrings, "ip="+url.QueryEscape(ip))
+		ipvalues.Add("ip", ip)
 	}
-	u := "http://unix/v1/annotate/ips?" + strings.Join(ipstrings, ",")
+	u := "http://unix/v1/annotate/ips?" + ipvalues.Encode()
 	resp, err := c.httpc.Get(u)
 	if err != nil {
 		metrics.ClientRPCCount.WithLabelValues("get_error").Inc()

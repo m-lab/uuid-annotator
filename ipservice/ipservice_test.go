@@ -144,6 +144,43 @@ func TestServerAndClientE2E(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Multiple IPs",
+			ips:  []string{"2.125.160.216", "127.0.0.1"},
+			want: map[string]*annotator.ClientAnnotations{
+				"2.125.160.216": &annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						CIDR:     "2.120.0.0/13",
+						ASNumber: 5607,
+						Systems: []annotator.System{
+							{ASNs: []uint32{5607}},
+						},
+					},
+					Geo: &annotator.Geolocation{
+						ContinentCode:       "EU",
+						CountryCode:         "GB",
+						CountryName:         "United Kingdom",
+						Subdivision1ISOCode: "ENG",
+						Subdivision1Name:    "England",
+						Subdivision2ISOCode: "WBK",
+						Subdivision2Name:    "West Berkshire",
+						City:                "Boxford",
+						PostalCode:          "OX1",
+						Latitude:            51.75,
+						Longitude:           -1.25,
+						AccuracyRadiusKm:    100,
+					},
+				},
+				"127.0.0.1": &annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						Missing: true,
+					},
+					Geo: &annotator.Geolocation{
+						Missing: true,
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
