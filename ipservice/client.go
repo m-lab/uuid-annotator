@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/metrics"
@@ -23,8 +24,10 @@ import (
 // of encoding and decoding lots of HTTP transactions ends up being too high, we
 // reserve the right to change away from HTTP without warning.
 type Client interface {
-	// Annotate gets the ClientAnnotations associated with a particular IP address.
-	Annotate(ctx context.Context, ip net.IP) (*annotator.ClientAnnotations, error)
+	// Annotate gets the ClientAnnotations associated with each of the valid
+	// passed-in IP addresses. Invalid IPs will not be present in the returned
+	// map.
+	Annotate(ctx context.Context, ips []string) (map[string]*annotator.ClientAnnotations, error)
 }
 
 // getter defines the subset of the interface of http.Client that we use, in an
@@ -38,9 +41,18 @@ type client struct {
 	httpc        getter
 }
 
-func (c *client) Annotate(ctx context.Context, ip net.IP) (*annotator.ClientAnnotations, error) {
-	u := "http://unix/v1/annotate/ip?ip=" + ip.String()
-	resp, err := c.httpc.Get(u)
+func (c *client) Annotate(ctx context.Context, ips []string) (map[string]*annotator.ClientAnnotations, error) {
+	ipvalues := url.Values{}
+	for _, ip := range ips {
+		ipvalues.Add("ip", ip)
+	}
+	u := url.URL{
+		Scheme:   "http",
+		Host:     "unix",
+		Path:     "/v1/annotate/ips",
+		RawQuery: ipvalues.Encode(),
+	}
+	resp, err := c.httpc.Get(u.String())
 	if err != nil {
 		metrics.ClientRPCCount.WithLabelValues("get_error").Inc()
 		return nil, err
@@ -49,13 +61,13 @@ func (c *client) Annotate(ctx context.Context, ip net.IP) (*annotator.ClientAnno
 		metrics.ClientRPCCount.WithLabelValues("http_status_error").Inc()
 		return nil, fmt.Errorf("Got HTTP %d, but wanted HTTP 200", resp.StatusCode)
 	}
-	ann := &annotator.ClientAnnotations{}
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		metrics.ClientRPCCount.WithLabelValues("read_error").Inc()
 		return nil, err
 	}
-	err = json.Unmarshal(b, ann)
+	ann := make(map[string]*annotator.ClientAnnotations)
+	err = json.Unmarshal(b, &ann)
 	if err == nil {
 		metrics.ClientRPCCount.WithLabelValues("success").Inc()
 	} else {

@@ -73,70 +73,118 @@ func TestServerAndClientE2E(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		ip      net.IP
-		want    annotator.ClientAnnotations
+		ips     []string
+		want    map[string]*annotator.ClientAnnotations
 		wantErr bool
 	}{
 		{
-			name:    "Nil ip",
-			ip:      nil,
+			name:    "Nil ips",
+			ips:     nil,
+			wantErr: true,
+		},
+		{
+			name:    "Bad ips",
+			ips:     []string{"this is not an ip address"},
 			wantErr: true,
 		},
 		{
 			name: "Localhost-v4",
-			ip:   net.ParseIP("127.0.0.1"),
-			want: annotator.ClientAnnotations{
-				Network: &annotator.Network{
-					Missing: true,
-				},
-				Geo: &annotator.Geolocation{
-					Missing: true,
+			ips:  []string{"127.0.0.1"},
+			want: map[string]*annotator.ClientAnnotations{
+				"127.0.0.1": &annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						Missing: true,
+					},
+					Geo: &annotator.Geolocation{
+						Missing: true,
+					},
 				},
 			},
 		},
 		{
 			name: "Localhost-v6",
-			ip:   net.ParseIP("::1"),
-			want: annotator.ClientAnnotations{
-				Network: &annotator.Network{
-					Missing: true,
-				},
-				Geo: &annotator.Geolocation{
-					Missing: true,
+			ips:  []string{"::1"},
+			want: map[string]*annotator.ClientAnnotations{
+				"::1": &annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						Missing: true,
+					},
+					Geo: &annotator.Geolocation{
+						Missing: true,
+					},
 				},
 			},
 		},
 		{
 			name: "IP that has everything",
-			ip:   net.ParseIP("2.125.160.216"),
-			want: annotator.ClientAnnotations{
-				Network: &annotator.Network{
-					CIDR:     "2.120.0.0/13",
-					ASNumber: 5607,
-					Systems: []annotator.System{
-						{ASNs: []uint32{5607}},
+			ips:  []string{"2.125.160.216"},
+			want: map[string]*annotator.ClientAnnotations{
+				"2.125.160.216": &annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						CIDR:     "2.120.0.0/13",
+						ASNumber: 5607,
+						Systems: []annotator.System{
+							{ASNs: []uint32{5607}},
+						},
+					},
+					Geo: &annotator.Geolocation{
+						ContinentCode:       "EU",
+						CountryCode:         "GB",
+						CountryName:         "United Kingdom",
+						Subdivision1ISOCode: "ENG",
+						Subdivision1Name:    "England",
+						Subdivision2ISOCode: "WBK",
+						Subdivision2Name:    "West Berkshire",
+						City:                "Boxford",
+						PostalCode:          "OX1",
+						Latitude:            51.75,
+						Longitude:           -1.25,
+						AccuracyRadiusKm:    100,
 					},
 				},
-				Geo: &annotator.Geolocation{
-					ContinentCode:       "EU",
-					CountryCode:         "GB",
-					CountryName:         "United Kingdom",
-					Subdivision1ISOCode: "ENG",
-					Subdivision1Name:    "England",
-					Subdivision2ISOCode: "WBK",
-					Subdivision2Name:    "West Berkshire",
-					City:                "Boxford",
-					PostalCode:          "OX1",
-					Latitude:            51.75,
-					Longitude:           -1.25,
-					AccuracyRadiusKm:    100,
+			},
+		},
+		{
+			name: "Multiple IPs",
+			ips:  []string{"2.125.160.216", "127.0.0.1"},
+			want: map[string]*annotator.ClientAnnotations{
+				"2.125.160.216": &annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						CIDR:     "2.120.0.0/13",
+						ASNumber: 5607,
+						Systems: []annotator.System{
+							{ASNs: []uint32{5607}},
+						},
+					},
+					Geo: &annotator.Geolocation{
+						ContinentCode:       "EU",
+						CountryCode:         "GB",
+						CountryName:         "United Kingdom",
+						Subdivision1ISOCode: "ENG",
+						Subdivision1Name:    "England",
+						Subdivision2ISOCode: "WBK",
+						Subdivision2Name:    "West Berkshire",
+						City:                "Boxford",
+						PostalCode:          "OX1",
+						Latitude:            51.75,
+						Longitude:           -1.25,
+						AccuracyRadiusKm:    100,
+					},
+				},
+				"127.0.0.1": &annotator.ClientAnnotations{
+					Network: &annotator.Network{
+						Missing: true,
+					},
+					Geo: &annotator.Geolocation{
+						Missing: true,
+					},
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.Annotate(ctx, tt.ip)
+			got, err := c.Annotate(ctx, tt.ips)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Annotate() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -183,7 +231,7 @@ func TestNewClient(t *testing.T) {
 
 	c := NewClient(sock)
 	ctx := context.Background()
-	_, err = c.Annotate(ctx, net.ParseIP("127.0.0.1"))
+	_, err = c.Annotate(ctx, []string{"127.0.0.1"})
 	rtx.Must(err, "Could not annotate localhost")
 }
 
@@ -196,7 +244,7 @@ func TestNewClientWithNoServer(t *testing.T) {
 
 	c := NewClient(sock)
 	ctx := context.Background()
-	_, err = c.Annotate(ctx, net.ParseIP("127.0.0.1"))
+	_, err = c.Annotate(ctx, []string{"127.0.0.1"})
 	if err == nil {
 		t.Error("We should have gotten an error from the http client")
 	}
@@ -217,7 +265,7 @@ func TestNewClient404(t *testing.T) {
 
 	c := NewClient(sock)
 	ctx := context.Background()
-	_, err = c.Annotate(ctx, net.ParseIP("127.0.0.1"))
+	_, err = c.Annotate(ctx, []string{"127.0.0.1"})
 	if err == nil {
 		t.Error("We should have gotten an error from the http client")
 	}
@@ -249,7 +297,7 @@ func TestNewClientWithUnreadableBody(t *testing.T) {
 	c := NewClient("this does not exist and that is ok")
 	c.(*client).httpc = &getterWithSpecificBody{&unreadableBody{}}
 	ctx := context.Background()
-	_, err := c.Annotate(ctx, net.ParseIP("127.0.0.1"))
+	_, err := c.Annotate(ctx, []string{"127.0.0.1"})
 	if err == nil {
 		t.Error("We should have gotten an error from the http client")
 	}
@@ -259,7 +307,7 @@ func TestNewClientWithUnmarshalableBody(t *testing.T) {
 	c := NewClient("this does not exist and that is ok")
 	c.(*client).httpc = &getterWithSpecificBody{ioutil.NopCloser(bytes.NewReader([]byte("]}not json")))}
 	ctx := context.Background()
-	_, err := c.Annotate(ctx, net.ParseIP("127.0.0.1"))
+	_, err := c.Annotate(ctx, []string{"127.0.0.1"})
 	if err == nil {
 		t.Error("We should have gotten an error from the http client")
 	}

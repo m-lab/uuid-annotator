@@ -38,24 +38,34 @@ func logOnNil(ptr interface{}, args ...interface{}) {
 }
 
 func (h *handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	ipstring := req.URL.Query().Get("ip")
-	ip := net.ParseIP(ipstring)
-	if ipstring == "" || ip == nil {
-		log.Println("Could not process request ip argument")
-		rw.WriteHeader(http.StatusBadRequest)
-		metrics.ServerRPCCount.WithLabelValues("badip_error").Inc()
-		return
-	}
-	a := &annotator.ClientAnnotations{}
-	if h.asn != nil {
-		a.Network = h.asn.AnnotateIP(ipstring) // Should nil returns be ignored?
-	}
-	if h.geo != nil {
-		err := h.geo.AnnotateIP(ip, &a.Geo)
-		logOnError(err, "Could not GEO annotate", ip)
+	ipstrings := req.URL.Query()["ip"]
+	resp := make(map[string]*annotator.ClientAnnotations)
+	for _, ipstring := range ipstrings {
+		ip := net.ParseIP(ipstring)
+		if ip == nil {
+			log.Println("Could not parse IP", ipstring)
+			metrics.ServerRPCCount.WithLabelValues("badip_error").Inc()
+			continue
+		}
+		a := &annotator.ClientAnnotations{}
+		if h.asn != nil {
+			a.Network = h.asn.AnnotateIP(ipstring) // Should nil returns be ignored?
+		}
+		if h.geo != nil {
+			err := h.geo.AnnotateIP(ip, &a.Geo)
+			logOnError(err, "Could not GEO annotate", ip)
+		}
+		resp[ipstring] = a
 	}
 
-	b, err := json.Marshal(a)
+	if len(resp) == 0 {
+		log.Println("Could not process request ip argument(s)")
+		rw.WriteHeader(http.StatusBadRequest)
+		metrics.ServerRPCCount.WithLabelValues("bad_request_error").Inc()
+		return
+	}
+
+	b, err := json.Marshal(resp)
 	rtx.Must(err, "Could not marshal the response. This should never happen and is a bug.")
 
 	_, err = rw.Write(b)
@@ -111,7 +121,7 @@ func NewServer(sockfilename string, asn asnannotator.ASNAnnotator, geo geoannota
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/v1/annotate/ip", h)
+	mux.Handle("/v1/annotate/ips", h)
 	srv := &http.Server{
 		Handler: mux,
 	}
