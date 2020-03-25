@@ -46,8 +46,13 @@ func (c *client) Annotate(ctx context.Context, ips []string) (map[string]*annota
 	for _, ip := range ips {
 		ipvalues.Add("ip", ip)
 	}
-	u := "http://unix/v1/annotate/ips?" + ipvalues.Encode()
-	resp, err := c.httpc.Get(u)
+	u := url.URL{
+		Scheme:   "http",
+		Host:     "unix",
+		Path:     "/v1/annotate/ips",
+		RawQuery: ipvalues.Encode(),
+	}
+	resp, err := c.httpc.Get(u.String())
 	if err != nil {
 		metrics.ClientRPCCount.WithLabelValues("get_error").Inc()
 		return nil, err
