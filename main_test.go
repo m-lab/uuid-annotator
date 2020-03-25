@@ -27,7 +27,7 @@ func TestMainSmokeTest(t *testing.T) {
 	rtx.Must(maxmindurl.Set("file:./testdata/fake.tar.gz"), "Failed to set maxmind url for testing")
 	rtx.Must(routeviewv4.Set("file:./testdata/RouteViewIPv4.tiny.gz"), "Failed to set routeview v4 url for testing")
 	rtx.Must(routeviewv6.Set("file:./testdata/RouteViewIPv6.tiny.gz"), "Failed to set routeview v6 url for testing")
-	rtx.Must(asnameurl.Set("file:./testdata/asnames.ipinfo.json"), "Failed to set ipinfo ASName url for testing")
+	rtx.Must(asnameurl.Set("file:./testdata/asnames.ipinfo.csv"), "Failed to set ipinfo ASName url for testing")
 	rtx.Must(siteinfo.Set("file:./testdata/annotations.json"), "Failed to set siteinfo annotations url for testing")
 	*hostname = "mlab1.lga03.measurement-lab.org"
 

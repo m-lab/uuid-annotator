@@ -7,11 +7,9 @@ import (
 	"net"
 	"net/url"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/go-test/deep"
-	"github.com/m-lab/annotation-service/api"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
@@ -36,7 +34,7 @@ func init() {
 	local6Rawfile, err = rawfile.FromURL(context.Background(), u6)
 	rtx.Must(err, "Could not create rawfile.Provider")
 
-	asn, err := url.Parse("file:../testdata/asnames.ipinfo.json")
+	asn, err := url.Parse("file:../testdata/asnames.ipinfo.csv")
 	rtx.Must(err, "Could not parse URL")
 	localASNamesfile, err = rawfile.FromURL(context.Background(), asn)
 	rtx.Must(err, "Could not create rawfile.Provider")
@@ -148,6 +146,7 @@ func Test_asnAnnotator_Annotate(t *testing.T) {
 					Network: &annotator.Network{
 						CIDR:     "2001:200::/32",
 						ASNumber: 2500,
+						ASName:   "WIDE Project",
 						Systems: []annotator.System{
 							{ASNs: []uint32{2500}},
 						},
@@ -203,48 +202,53 @@ func (b badProvider) Get(_ context.Context) ([]byte, error) {
 }
 
 func Test_asnAnnotator_Reload(t *testing.T) {
-	type fields struct {
-		m        sync.RWMutex
-		localIPs []net.IP
-		as4      rawfile.Provider
-		as6      rawfile.Provider
-		asn4     api.Annotator
-		asn6     api.Annotator
-	}
 	tests := []struct {
-		name string
-		as4  rawfile.Provider
-		as6  rawfile.Provider
+		name       string
+		as4        rawfile.Provider
+		as6        rawfile.Provider
+		asnamedata rawfile.Provider
 	}{
 		{
-			name: "success",
-			as4:  local4Rawfile,
-			as6:  local6Rawfile,
+			name:       "success",
+			as4:        local4Rawfile,
+			as6:        local6Rawfile,
+			asnamedata: localASNamesfile,
 		},
 		{
-			name: "v4-bad-provider",
-			as4:  badProvider{errors.New("fake v4 error")},
-			as6:  local6Rawfile,
+			name:       "v4-bad-provider",
+			as4:        badProvider{errors.New("fake v4 error")},
+			as6:        local6Rawfile,
+			asnamedata: localASNamesfile,
 		},
 		{
-			name: "v4-no-change",
-			as4:  badProvider{rawfile.ErrNoChange},
-			as6:  local6Rawfile,
+			name:       "v4-no-change",
+			as4:        badProvider{rawfile.ErrNoChange},
+			as6:        local6Rawfile,
+			asnamedata: localASNamesfile,
 		},
 		{
-			name: "bad-v6-provider",
-			as4:  local4Rawfile,
-			as6:  badProvider{errors.New("fake v6 error")},
+			name:       "bad-v6-provider",
+			as4:        local4Rawfile,
+			as6:        badProvider{errors.New("fake v6 error")},
+			asnamedata: localASNamesfile,
 		},
 		{
-			name: "v6-no-change",
-			as4:  local4Rawfile,
-			as6:  badProvider{rawfile.ErrNoChange},
+			name:       "bad-names-provider",
+			as4:        local4Rawfile,
+			as6:        local6Rawfile,
+			asnamedata: badProvider{errors.New("fake v6 error")},
 		},
 		{
-			name: "corrupt-gz",
-			as4:  corruptFile,
-			as6:  local6Rawfile,
+			name:       "v6-no-change",
+			as4:        local4Rawfile,
+			as6:        badProvider{rawfile.ErrNoChange},
+			asnamedata: localASNamesfile,
+		},
+		{
+			name:       "corrupt-gz",
+			as4:        corruptFile,
+			as6:        local6Rawfile,
+			asnamedata: localASNamesfile,
 		},
 	}
 	for _, tt := range tests {
@@ -252,9 +256,10 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 			ctx := context.Background()
 			// NOTE: we don't use New() to allow injecting bad providers.
 			a := &asnAnnotator{
-				localIPs: localIPs,
-				as4:      tt.as4,
-				as6:      tt.as6,
+				localIPs:   localIPs,
+				as4:        tt.as4,
+				as6:        tt.as6,
+				asnamedata: tt.asnamedata,
 			}
 			a.Reload(ctx)
 		})

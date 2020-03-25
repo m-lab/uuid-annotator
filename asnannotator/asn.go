@@ -1,9 +1,12 @@
 package asnannotator
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"log"
 	"net"
+	"strconv"
 	"sync"
 
 	"github.com/m-lab/go/rtx"
@@ -23,29 +26,32 @@ type ASNAnnotator interface {
 
 // asnAnnotator is the central struct for this module.
 type asnAnnotator struct {
-	m        sync.RWMutex
-	localIPs []net.IP
-	as4      rawfile.Provider
-	as6      rawfile.Provider
-	asnames  rawfile.Provider
-	asn4     routeview.Index
-	asn6     routeview.Index
+	m          sync.RWMutex
+	localIPs   []net.IP
+	as4        rawfile.Provider
+	as6        rawfile.Provider
+	asnamedata rawfile.Provider
+	asn4       routeview.Index
+	asn6       routeview.Index
+	asnames    map[uint32]string
 }
 
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
 // that IP based on the current copy of RouteViews data stored in the given providers.
-func New(ctx context.Context, as4 rawfile.Provider, as6 rawfile.Provider, asnames rawfile.Provider, localIPs []net.IP) ASNAnnotator {
+func New(ctx context.Context, as4 rawfile.Provider, as6 rawfile.Provider, asnamedata rawfile.Provider, localIPs []net.IP) ASNAnnotator {
 	a := &asnAnnotator{
-		as4:      as4,
-		as6:      as6,
-		asnames:  asnames,
-		localIPs: localIPs,
+		as4:        as4,
+		as6:        as6,
+		asnamedata: asnamedata,
+		localIPs:   localIPs,
 	}
 	var err error
 	a.asn4, err = load(ctx, as4, nil)
-	rtx.Must(err, "Could not load IPv4 ASN db")
+	rtx.Must(err, "Could not load Routeviews IPv4 ASN db")
 	a.asn6, err = load(ctx, as6, nil)
-	rtx.Must(err, "Could not load IPv6 ASN db")
+	rtx.Must(err, "Could not load Routeviews IPv6 ASN db")
+	a.asnames, err = loadNames(ctx, asnamedata, nil)
+	rtx.Must(err, "Could not load IPinfo.io AS name db")
 	return a
 }
 
@@ -97,6 +103,9 @@ func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 
 	ann.Systems = routeview.ParseSystems(ipnet.Systems)
 	ann.ASNumber = ann.FirstASN()
+	if a.asnames != nil {
+		ann.ASName = a.asnames[ann.ASNumber]
+	}
 	ann.CIDR = ipnet.String()
 	// The annotation succeeded with IPv6.
 	return ann
@@ -116,11 +125,17 @@ func (a *asnAnnotator) Reload(ctx context.Context) {
 		log.Println("Could not reload v6 routeviews:", err)
 		return
 	}
+	newnames, err := loadNames(ctx, a.asnamedata, a.asnames)
+	if err != nil {
+		log.Println("Could not reload asnames from ipinfo:", err)
+		return
+	}
 	// Don't acquire the lock until after the data is in RAM.
 	a.m.Lock()
 	defer a.m.Unlock()
 	a.asn4 = new4
 	a.asn6 = new6
+	a.asnames = newnames
 }
 
 func load(ctx context.Context, src rawfile.Provider, oldvalue routeview.Index) (routeview.Index, error) {
@@ -140,4 +155,30 @@ func loadGZ(ctx context.Context, gz []byte) (routeview.Index, error) {
 		return nil, err
 	}
 	return routeview.ParseRouteView(data), nil
+}
+
+func loadNames(ctx context.Context, src rawfile.Provider, oldvalue map[uint32]string) (map[uint32]string, error) {
+	data, err := src.Get(ctx)
+	if err == rawfile.ErrNoChange {
+		return oldvalue, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	newmap := make(map[uint32]string)
+	rows, err := csv.NewReader(bytes.NewBuffer(data)).ReadAll()
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		asnstring := row[0]
+		asname := row[1]
+		asn, err := strconv.ParseUint(asnstring[2:], 10, 32)
+		if err != nil {
+			continue
+		}
+		newmap[uint32(asn)] = asname
+	}
+	return newmap, nil
 }
