@@ -29,7 +29,7 @@ var (
 	maxmindurl      = flagx.URL{}
 	routeviewv4     = flagx.URL{}
 	routeviewv6     = flagx.URL{}
-	asnameurl       = flagx.URL{}
+	asnameurl       = flagx.MustNewURL("file://./data/asnames.ipinfo.csv")
 	siteinfo        = flagx.URL{}
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 

@@ -38,7 +38,7 @@ func init() {
 	rtx.Must(err, "Could not parse URL")
 	local6Rawfile, err := rawfile.FromURL(context.Background(), u6)
 	rtx.Must(err, "Could not create rawfile.Provider")
-	as, err := url.Parse("file:../testdata/asnames.ipinfo.csv")
+	as, err := url.Parse("file:../data/asnames.ipinfo.csv")
 	rtx.Must(err, "Could not parse URL")
 	localASNamesfile, err := rawfile.FromURL(context.Background(), as)
 	rtx.Must(err, "Could not create rawfile.Provider")
