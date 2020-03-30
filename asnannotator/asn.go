@@ -90,6 +90,9 @@ func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 		ann.Systems = routeview.ParseSystems(ipnet.Systems)
 		ann.ASNumber = ann.FirstASN()
 		ann.CIDR = ipnet.String()
+		if a.asnames != nil {
+			ann.ASName = a.asnames[ann.ASNumber]
+		}
 		// The annotation succeeded with IPv4.
 		return ann
 	}
@@ -171,11 +174,13 @@ func loadNames(ctx context.Context, src rawfile.Provider, oldvalue map[uint32]st
 	if err != nil {
 		return nil, err
 	}
-	for _, row := range rows {
+	// Start from row[1] not row[0] to skip the csv header.
+	for _, row := range rows[1:] {
 		asnstring := row[0]
 		asname := row[1]
 		asn, err := strconv.ParseUint(asnstring[2:], 10, 32)
 		if err != nil {
+			log.Println("Error reading a single line (this should not happen):", err)
 			continue
 		}
 		newmap[uint32(asn)] = asname

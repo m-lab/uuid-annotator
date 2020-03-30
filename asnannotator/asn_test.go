@@ -76,6 +76,7 @@ func Test_asnAnnotator_Annotate(t *testing.T) {
 					Network: &annotator.Network{
 						CIDR:     "1.0.0.0/24",
 						ASNumber: 13335,
+						ASName:   "Cloudflare, Inc.",
 						Systems: []annotator.System{
 							{ASNs: []uint32{13335}},
 						},
@@ -97,6 +98,7 @@ func Test_asnAnnotator_Annotate(t *testing.T) {
 					Network: &annotator.Network{
 						CIDR:     "223.252.176.0/24",
 						ASNumber: 133929,
+						ASName:   "TWOWIN CO., LIMITED",
 						Systems: []annotator.System{
 							{ASNs: []uint32{133929}},
 							{ASNs: []uint32{133107}},
