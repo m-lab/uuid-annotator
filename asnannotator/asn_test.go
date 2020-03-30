@@ -186,12 +186,13 @@ func Test_asnAnnotator_AnnotateIP(t *testing.T) {
 	want := annotator.Network{
 		CIDR:     "2001:200::/32",
 		ASNumber: 2500,
+		ASName:   "WIDE Project",
 		Systems: []annotator.System{
 			{ASNs: []uint32{2500}},
 		},
 	}
 	if diff := deep.Equal(*got, want); diff != nil {
-		log.Println("got!=want", diff)
+		t.Error("got!=want", diff)
 	}
 }
 
