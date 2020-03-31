@@ -7,7 +7,6 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/eventsocket"
@@ -22,6 +21,7 @@ func TestMainSmokeTest(t *testing.T) {
 
 	// Set up global variables.
 	mainCtx, mainCancel = context.WithCancel(context.Background())
+	mainRunning = make(chan struct{}, 1)
 	*eventsocket.Filename = dir + "/eventsocket.sock"
 	*ipservice.SocketFilename = dir + "/ipannotator.sock"
 	rtx.Must(maxmindurl.Set("file:./testdata/fake.tar.gz"), "Failed to set maxmind url for testing")
@@ -33,19 +33,12 @@ func TestMainSmokeTest(t *testing.T) {
 
 	// Now start up a fake eventsocket.
 	srv := eventsocket.New(*eventsocket.Filename)
-	srv.Listen()
-	// Wait for the UNIX domain socket file to appear.
-	for {
-		_, err := os.Stat(*eventsocket.Filename)
-		if err == nil {
-			break
-		}
-	}
+	rtx.Must(srv.Listen(), "Could not listen")
 	go srv.Serve(mainCtx)
 
-	// Cancel main after half a second.
+	// Cancel main after main is running
 	go func() {
-		time.Sleep(500 * time.Millisecond)
+		<-mainRunning
 		mainCancel()
 	}()
 

@@ -41,8 +41,9 @@ var (
 	reloadTime = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax  = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
 
-	// Context and cancellation in support of testing.
+	// Context, cancellation, and a channel all in support of testing.
 	mainCtx, mainCancel = context.WithCancel(context.Background())
+	mainRunning         = make(chan struct{}, 1)
 )
 
 func init() {
@@ -151,5 +152,6 @@ func main() {
 		}()
 	}
 
+	mainRunning <- struct{}{}
 	wg.Wait()
 }
