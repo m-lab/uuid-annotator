@@ -19,8 +19,17 @@ func TestMainSmokeTest(t *testing.T) {
 	rtx.Must(err, "Could not create tempdir")
 	defer os.RemoveAll(dir)
 
+	// We need two contexts, one for the test and one for main. We need the test
+	// context to outlive main's context, because we don't want the cancellation
+	// of main to cause the cancellation of the tcpinfo.eventsocket, because
+	// then the shutdown of main() will race the shutdown of the local
+	// tcpinfo.eventsocket.Server, and when the tcpinfo.eventsocket.Server shuts
+	// down first then main (correctly) exits with an error and the test fails.
+	testCtx, testCancel := context.WithCancel(context.Background())
+	defer testCancel()
+
 	// Set up global variables.
-	mainCtx, mainCancel = context.WithCancel(context.Background())
+	mainCtx, mainCancel = context.WithCancel(testCtx)
 	mainRunning = make(chan struct{}, 1)
 	*eventsocket.Filename = dir + "/eventsocket.sock"
 	*ipservice.SocketFilename = dir + "/ipannotator.sock"
@@ -34,7 +43,7 @@ func TestMainSmokeTest(t *testing.T) {
 	// Now start up a fake eventsocket.
 	srv := eventsocket.New(*eventsocket.Filename)
 	rtx.Must(srv.Listen(), "Could not listen")
-	go srv.Serve(mainCtx)
+	go srv.Serve(testCtx)
 
 	// Cancel main after main is running
 	go func() {
