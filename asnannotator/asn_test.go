@@ -204,6 +204,12 @@ func (b badProvider) Get(_ context.Context) ([]byte, error) {
 	return nil, b.err
 }
 
+type stringProvider string
+
+func (s stringProvider) Get(_ context.Context) ([]byte, error) {
+	return []byte(s), nil
+}
+
 func Test_asnAnnotator_Reload(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -236,16 +242,46 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 			asnamedata: localASNamesfile,
 		},
 		{
+			name:       "v6-no-change",
+			as4:        local4Rawfile,
+			as6:        badProvider{rawfile.ErrNoChange},
+			asnamedata: localASNamesfile,
+		},
+		{
 			name:       "bad-names-provider",
 			as4:        local4Rawfile,
 			as6:        local6Rawfile,
 			asnamedata: badProvider{errors.New("fake v6 error")},
 		},
 		{
-			name:       "v6-no-change",
+			name:       "names-no-change",
 			as4:        local4Rawfile,
-			as6:        badProvider{rawfile.ErrNoChange},
-			asnamedata: localASNamesfile,
+			as6:        local6Rawfile,
+			asnamedata: badProvider{rawfile.ErrNoChange},
+		},
+		{
+			name:       "names-not-a-csv",
+			as4:        local4Rawfile,
+			as6:        local6Rawfile,
+			asnamedata: corruptFile,
+		},
+		{
+			name: "names-bad-row",
+			as4:  local4Rawfile,
+			as6:  local6Rawfile,
+			asnamedata: stringProvider(`asn,name
+AS01,test
+badval,test2
+`),
+		},
+		{
+			name: "names-too-short-rows",
+			as4:  local4Rawfile,
+			as6:  local6Rawfile,
+			asnamedata: stringProvider(`asn
+AS01
+AS02
+`),
 		},
 		{
 			name:       "corrupt-gz",

@@ -176,11 +176,15 @@ func loadNames(ctx context.Context, src rawfile.Provider, oldvalue map[uint32]st
 	}
 	// Start from row[1] not row[0] to skip the csv header.
 	for _, row := range rows[1:] {
+		if len(row) < 2 {
+			log.Println("Bad CSV row (not enough entries). This should never happen.", row)
+			continue
+		}
 		asnstring := row[0]
 		asname := row[1]
 		asn, err := strconv.ParseUint(asnstring[2:], 10, 32)
 		if err != nil {
-			log.Println("Error reading a single line (this should not happen):", err)
+			log.Println("Parse error on a single CSV row (this should never happen):", err, row)
 			continue
 		}
 		newmap[uint32(asn)] = asname

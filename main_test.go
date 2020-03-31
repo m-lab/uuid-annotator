@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/eventsocket"
@@ -45,9 +46,13 @@ func TestMainSmokeTest(t *testing.T) {
 	rtx.Must(srv.Listen(), "Could not listen")
 	go srv.Serve(testCtx)
 
-	// Cancel main after main is running
+	// Cancel main after main has been running all its goroutines for half a
+	// second.
 	go func() {
 		<-mainRunning
+		// Give all of main's goroutines a little time to start now that we know
+		// main() has started them all.
+		time.Sleep(500 * time.Millisecond)
 		mainCancel()
 	}()
 
