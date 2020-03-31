@@ -11,5 +11,6 @@ RUN go get -v \
 FROM alpine
 COPY --from=build /go/bin/uuid-annotator /uuid-annotator
 COPY ./data/asnames.ipinfo.csv /data/asnames.ipinfo.csv
+ENV SITEINFO_URL /data/asnames.ipinfo.csv
 WORKDIR /
 ENTRYPOINT ["/uuid-annotator"]

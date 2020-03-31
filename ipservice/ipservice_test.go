@@ -128,6 +128,7 @@ func TestServerAndClientE2E(t *testing.T) {
 					Network: &annotator.Network{
 						CIDR:     "2.120.0.0/13",
 						ASNumber: 5607,
+						ASName:   "Sky UK Limited",
 						Systems: []annotator.System{
 							{ASNs: []uint32{5607}},
 						},
@@ -157,6 +158,7 @@ func TestServerAndClientE2E(t *testing.T) {
 					Network: &annotator.Network{
 						CIDR:     "2.120.0.0/13",
 						ASNumber: 5607,
+						ASName:   "Sky UK Limited",
 						Systems: []annotator.System{
 							{ASNs: []uint32{5607}},
 						},
