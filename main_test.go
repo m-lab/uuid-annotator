@@ -34,6 +34,13 @@ func TestMainSmokeTest(t *testing.T) {
 	// Now start up a fake eventsocket.
 	srv := eventsocket.New(*eventsocket.Filename)
 	srv.Listen()
+	// Wait for the UNIX domain socket file to appear.
+	for {
+		_, err := os.Stat(*eventsocket.Filename)
+		if err == nil {
+			break
+		}
+	}
 	go srv.Serve(mainCtx)
 
 	// Cancel main after half a second.

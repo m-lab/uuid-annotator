@@ -50,7 +50,7 @@ func init() {
 	flag.Var(&routeviewv4, "routeview-v4.url", "The URL for the RouteViewIPv4 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	flag.Var(&routeviewv6, "routeview-v6.url", "The URL for the RouteViewIPv6 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	flag.Var(&siteinfo, "siteinfo.url", "The URL for the Siteinfo JSON file containing server location and ASN metadata. gs:// and file:// schemes accepted.")
-	log.SetFlags(log.LstdFlags | log.LUTC | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.LUTC | log.Llongfile)
 }
 
 func findLocalIPs(localAddrs []net.Addr) []net.IP {
