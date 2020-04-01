@@ -20,23 +20,38 @@ func TestMainSmokeTest(t *testing.T) {
 	rtx.Must(err, "Could not create tempdir")
 	defer os.RemoveAll(dir)
 
+	// We need two contexts, one for the test and one for main. We need the test
+	// context to outlive main's context, because we don't want the cancellation
+	// of main to cause the cancellation of the tcpinfo.eventsocket, because
+	// then the shutdown of main() will race the shutdown of the local
+	// tcpinfo.eventsocket.Server, and when the tcpinfo.eventsocket.Server shuts
+	// down first then main (correctly) exits with an error and the test fails.
+	testCtx, testCancel := context.WithCancel(context.Background())
+	defer testCancel()
+
 	// Set up global variables.
-	mainCtx, mainCancel = context.WithCancel(context.Background())
+	mainCtx, mainCancel = context.WithCancel(testCtx)
+	mainRunning = make(chan struct{}, 1)
 	*eventsocket.Filename = dir + "/eventsocket.sock"
 	*ipservice.SocketFilename = dir + "/ipannotator.sock"
 	rtx.Must(maxmindurl.Set("file:./testdata/fake.tar.gz"), "Failed to set maxmind url for testing")
 	rtx.Must(routeviewv4.Set("file:./testdata/RouteViewIPv4.tiny.gz"), "Failed to set routeview v4 url for testing")
 	rtx.Must(routeviewv6.Set("file:./testdata/RouteViewIPv6.tiny.gz"), "Failed to set routeview v6 url for testing")
+	rtx.Must(asnameurl.Set("file:./data/asnames.ipinfo.csv"), "Failed to set ipinfo ASName url for testing")
 	rtx.Must(siteinfo.Set("file:./testdata/annotations.json"), "Failed to set siteinfo annotations url for testing")
 	*hostname = "mlab1.lga03.measurement-lab.org"
 
 	// Now start up a fake eventsocket.
 	srv := eventsocket.New(*eventsocket.Filename)
-	srv.Listen()
-	go srv.Serve(mainCtx)
+	rtx.Must(srv.Listen(), "Could not listen")
+	go srv.Serve(testCtx)
 
-	// Cancel main after half a second.
+	// Cancel main after main has been running all its goroutines for half a
+	// second.
 	go func() {
+		<-mainRunning
+		// Give all of main's goroutines a little time to start now that we know
+		// main() has started them all.
 		time.Sleep(500 * time.Millisecond)
 		mainCancel()
 	}()

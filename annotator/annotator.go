@@ -47,28 +47,30 @@ type Geolocation struct {
 	Missing bool `json:",omitempty"` // True when the Geolocation data is missing from MaxMind.
 }
 
-// We currently use CAIDA RouteView data to populate ASN annotations.
+// We currently use CAIDA RouteViews data to populate ASN annotations.
 // See documentation at:
 // http://data.caida.org/datasets/routing/routeviews-prefix2as/README.txt
+//
+// We use data given to us by IPinfo.io to assign AS names to AS numbers.
 
 // A System is the base element. It may contain a single ASN or multiple ASNs
 // comprising an AS set.
 type System struct {
 	// ASNs contains a single ASN, or AS set. There must always be at least one
 	// ASN. If there are more than one ASN, they will be listed in the same order
-	// as RouteView.
+	// as RouteViews.
 	ASNs []uint32
 }
 
 // Network contains the Autonomous System information associated with the IP prefix.
 // Roughly 99% of mappings consist of a single System with a single ASN.
 type Network struct {
-	CIDR     string `json:",omitempty"` // The IP prefix found in the RouteView data.
+	CIDR     string `json:",omitempty"` // The IP prefix found in the RouteViews data.
 	ASNumber uint32 `json:",omitempty"` // First AS number.
-	ASName   string `json:",omitempty"` // Place holder for AS name.
-	Missing  bool   `json:",omitempty"` // True when the ASN data is missing from RouteView.
+	ASName   string `json:",omitempty"` // AS name for that number, data from IPinfo.io
+	Missing  bool   `json:",omitempty"` // True when the ASN data is missing from RouteViews.
 
-	// Systems may contain data for Multi-Origin ASNs. Typically, RouteView
+	// Systems may contain data for Multi-Origin ASNs. Typically, RouteViews
 	// records a single ASN per netblock.
 	Systems []System `json:",omitempty"`
 }

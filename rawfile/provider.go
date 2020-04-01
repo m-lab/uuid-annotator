@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -68,13 +69,23 @@ func (g *gcsProvider) Get(ctx context.Context) ([]byte, error) {
 // fileProvider gets files from the local disk.
 type fileProvider struct {
 	filename string
+	mtime    time.Time
 }
 
 func (f *fileProvider) Get(ctx context.Context) ([]byte, error) {
+	s, err := os.Stat(f.filename)
+	if err != nil {
+		return nil, err
+	}
+	newtime := s.ModTime()
+	if newtime == f.mtime {
+		return nil, ErrNoChange
+	}
 	b, err := ioutil.ReadFile(f.filename)
 	if err != nil {
 		return nil, err
 	}
+	f.mtime = newtime
 	return b, nil
 }
 

@@ -29,6 +29,7 @@ var (
 	maxmindurl      = flagx.URL{}
 	routeviewv4     = flagx.URL{}
 	routeviewv6     = flagx.URL{}
+	asnameurl       = flagx.URL{}
 	siteinfo        = flagx.URL{}
 	eventbuffersize = flag.Int("eventbuffersize", 1000, "How many events should we buffer before dropping them?")
 
@@ -40,8 +41,9 @@ var (
 	reloadTime = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax  = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
 
-	// Context and cancellation in support of testing.
+	// Context, cancellation, and a channel all in support of testing.
 	mainCtx, mainCancel = context.WithCancel(context.Background())
+	mainRunning         = make(chan struct{}, 1)
 )
 
 func init() {
@@ -49,7 +51,7 @@ func init() {
 	flag.Var(&routeviewv4, "routeview-v4.url", "The URL for the RouteViewIPv4 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	flag.Var(&routeviewv6, "routeview-v6.url", "The URL for the RouteViewIPv6 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	flag.Var(&siteinfo, "siteinfo.url", "The URL for the Siteinfo JSON file containing server location and ASN metadata. gs:// and file:// schemes accepted.")
-	log.SetFlags(log.LstdFlags | log.LUTC | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.LUTC | log.Llongfile)
 }
 
 func findLocalIPs(localAddrs []net.Addr) []net.IP {
@@ -93,7 +95,9 @@ func main() {
 	rtx.Must(err, "Could not load routeview v4 URL")
 	p6, err := rawfile.FromURL(mainCtx, routeviewv6.URL)
 	rtx.Must(err, "Could not load routeview v6 URL")
-	asn := asnannotator.New(mainCtx, p4, p6, localIPs)
+	asnames, err := rawfile.FromURL(mainCtx, asnameurl.URL)
+	rtx.Must(err, "Could not load AS names URL")
+	asn := asnannotator.New(mainCtx, p4, p6, asnames, localIPs)
 
 	js, err := rawfile.FromURL(mainCtx, siteinfo.URL)
 	rtx.Must(err, "Could not load siteinfo URL")
@@ -148,5 +152,6 @@ func main() {
 		}()
 	}
 
+	mainRunning <- struct{}{}
 	wg.Wait()
 }
