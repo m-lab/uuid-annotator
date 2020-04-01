@@ -284,7 +284,7 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 }
 
 func Test_loadGZ_errors(t *testing.T) {
-	_, err := loadGZ(context.Background(), []byte{})
+	_, err := loadGZ([]byte{})
 	if err == nil {
 		t.Error("Should have had an error, not nil")
 	}

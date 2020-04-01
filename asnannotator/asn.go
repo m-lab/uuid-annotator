@@ -147,10 +147,10 @@ func load(ctx context.Context, src rawfile.Provider, oldvalue routeview.Index) (
 	if err != nil {
 		return nil, err
 	}
-	return loadGZ(ctx, gz)
+	return loadGZ(gz)
 }
 
-func loadGZ(ctx context.Context, gz []byte) (routeview.Index, error) {
+func loadGZ(gz []byte) (routeview.Index, error) {
 	data, err := rawfile.FromGZ(gz)
 	if err != nil {
 		return nil, err
