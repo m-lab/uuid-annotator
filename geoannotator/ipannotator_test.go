@@ -27,7 +27,7 @@ var localEmpty rawfile.Provider
 var localIP = "175.16.199.3"
 var remoteIP = "2.125.160.216" // includes multiple subdivision annotations.
 
-func init() {
+func setUp() {
 	var err error
 	u, err := url.Parse("file:../testdata/fake.tar.gz")
 	rtx.Must(err, "Could not parse URL")
@@ -48,6 +48,7 @@ func init() {
 }
 
 func TestIPAnnotationS2C(t *testing.T) {
+	setUp()
 	localaddrs := []net.IP{
 		net.ParseIP(localIP),
 	}
@@ -88,6 +89,7 @@ func TestIPAnnotationS2C(t *testing.T) {
 }
 
 func TestIPAnnotationC2S(t *testing.T) {
+	setUp()
 	localaddrs := []net.IP{
 		net.ParseIP(localIP),
 	}
@@ -116,6 +118,7 @@ func TestIPAnnotationC2S(t *testing.T) {
 }
 
 func TestIPAnnotationBadIP(t *testing.T) {
+	setUp()
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
@@ -138,6 +141,7 @@ func TestIPAnnotationBadIP(t *testing.T) {
 }
 
 func TestIPAnnotationBadDst(t *testing.T) {
+	setUp()
 	localaddrs := []net.IP{
 		net.ParseIP("1.0.0.1"),
 	}
@@ -160,6 +164,7 @@ func TestIPAnnotationBadDst(t *testing.T) {
 }
 
 func TestIPAnnotationUnknownDirection(t *testing.T) {
+	setUp()
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
 	g := New(context.Background(), localRawfile, localaddrs)
 
@@ -180,6 +185,7 @@ func TestIPAnnotationUnknownDirection(t *testing.T) {
 }
 
 func TestIPAnnotationUnknownIP(t *testing.T) {
+	setUp()
 	localaddrs := []net.IP{net.ParseIP("1.0.0.1")}
 	g := New(context.Background(), localRawfile, localaddrs)
 
@@ -209,6 +215,7 @@ func (b badProvider) Get(_ context.Context) ([]byte, error) {
 }
 
 func TestIPAnnotationLoadNoChange(t *testing.T) {
+	setUp()
 	ctx := context.Background()
 	fakeReader := geoip2.Reader{}
 	g := geoannotator{
@@ -226,6 +233,7 @@ func TestIPAnnotationLoadNoChange(t *testing.T) {
 	}
 }
 func TestIPAnnotationLoadErrors(t *testing.T) {
+	setUp()
 	ctx := context.Background()
 	g := geoannotator{
 		backingDataSource: badProvider{errors.New("Error for testing")},
@@ -256,6 +264,7 @@ func TestIPAnnotationLoadErrors(t *testing.T) {
 }
 
 func TestIPAnnotationWrongDbType(t *testing.T) {
+	setUp()
 	localIPs := []net.IP{net.ParseIP(localIP)}
 	// localWrongType should load successfully, but fail to annotate.
 	g := New(context.Background(), localWrongType, localIPs)
@@ -277,6 +286,7 @@ func TestIPAnnotationWrongDbType(t *testing.T) {
 }
 
 func TestIPAnnotationMissingCityDB(t *testing.T) {
+	setUp()
 	ctx := context.Background()
 	g := geoannotator{
 		backingDataSource: localEmpty,

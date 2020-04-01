@@ -1,18 +1,16 @@
 package asnannotator
 
 import (
-	"bytes"
 	"context"
-	"encoding/csv"
 	"log"
 	"net"
-	"strconv"
 	"sync"
 
 	"github.com/m-lab/go/rtx"
 
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
+	"github.com/m-lab/uuid-annotator/ipinfo"
 	"github.com/m-lab/uuid-annotator/rawfile"
 	"github.com/m-lab/uuid-annotator/routeview"
 )
@@ -33,7 +31,7 @@ type asnAnnotator struct {
 	asnamedata rawfile.Provider
 	asn4       routeview.Index
 	asn6       routeview.Index
-	asnames    map[uint32]string
+	asnames    ipinfo.ASNames
 }
 
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
@@ -160,7 +158,7 @@ func loadGZ(ctx context.Context, gz []byte) (routeview.Index, error) {
 	return routeview.ParseRouteView(data), nil
 }
 
-func loadNames(ctx context.Context, src rawfile.Provider, oldvalue map[uint32]string) (map[uint32]string, error) {
+func loadNames(ctx context.Context, src rawfile.Provider, oldvalue ipinfo.ASNames) (ipinfo.ASNames, error) {
 	data, err := src.Get(ctx)
 	if err == rawfile.ErrNoChange {
 		return oldvalue, nil
@@ -168,26 +166,5 @@ func loadNames(ctx context.Context, src rawfile.Provider, oldvalue map[uint32]st
 	if err != nil {
 		return nil, err
 	}
-
-	newmap := make(map[uint32]string)
-	rows, err := csv.NewReader(bytes.NewBuffer(data)).ReadAll()
-	if err != nil {
-		return nil, err
-	}
-	// Start from row[1] not row[0] to skip the csv header.
-	for _, row := range rows[1:] {
-		if len(row) < 2 {
-			log.Println("Bad CSV row (not enough entries). This should never happen.", row)
-			continue
-		}
-		asnstring := row[0]
-		asname := row[1]
-		asn, err := strconv.ParseUint(asnstring[2:], 10, 32)
-		if err != nil {
-			log.Println("Parse error on a single CSV row (this should never happen):", err, row)
-			continue
-		}
-		newmap[uint32(asn)] = asname
-	}
-	return newmap, nil
+	return ipinfo.Parse(data)
 }

@@ -22,7 +22,7 @@ var localASNamesfile rawfile.Provider
 var corruptFile rawfile.Provider
 var localIPs []net.IP
 
-func init() {
+func setUp() {
 	var err error
 	u4, err := url.Parse("file:../testdata/RouteViewIPv4.pfx2as.gz")
 	rtx.Must(err, "Could not parse URL")
@@ -49,7 +49,7 @@ func init() {
 }
 
 func Test_asnAnnotator_Annotate(t *testing.T) {
-
+	setUp()
 	localV4 := "9.0.0.9"
 	localV6 := "2002::1"
 	localIPs = []net.IP{
@@ -159,6 +159,7 @@ func Test_asnAnnotator_Annotate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			setUp()
 			ctx := context.Background()
 			a := New(ctx, local4Rawfile, local6Rawfile, localASNamesfile, localIPs)
 			ann := &annotator.Annotations{}
@@ -173,7 +174,7 @@ func Test_asnAnnotator_Annotate(t *testing.T) {
 }
 
 func Test_asnAnnotator_AnnotateIP(t *testing.T) {
-
+	setUp()
 	localV4 := "9.0.0.9"
 	localV6 := "2002::1"
 	localIPs = []net.IP{
@@ -204,13 +205,8 @@ func (b badProvider) Get(_ context.Context) ([]byte, error) {
 	return nil, b.err
 }
 
-type stringProvider string
-
-func (s stringProvider) Get(_ context.Context) ([]byte, error) {
-	return []byte(s), nil
-}
-
 func Test_asnAnnotator_Reload(t *testing.T) {
+	setUp()
 	tests := []struct {
 		name       string
 		as4        rawfile.Provider
@@ -266,24 +262,6 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 			asnamedata: corruptFile,
 		},
 		{
-			name: "names-bad-row",
-			as4:  local4Rawfile,
-			as6:  local6Rawfile,
-			asnamedata: stringProvider(`asn,name
-AS01,test
-badval,test2
-`),
-		},
-		{
-			name: "names-too-short-rows",
-			as4:  local4Rawfile,
-			as6:  local6Rawfile,
-			asnamedata: stringProvider(`asn
-AS01
-AS02
-`),
-		},
-		{
 			name:       "corrupt-gz",
 			as4:        corruptFile,
 			as6:        local6Rawfile,
@@ -302,5 +280,12 @@ AS02
 			}
 			a.Reload(ctx)
 		})
+	}
+}
+
+func Test_loadGZ_errors(t *testing.T) {
+	_, err := loadGZ(context.Background(), []byte{})
+	if err == nil {
+		t.Error("Should have had an error, not nil")
 	}
 }

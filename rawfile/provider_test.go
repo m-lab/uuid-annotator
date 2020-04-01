@@ -32,6 +32,11 @@ func TestFileFromURLThenGet(t *testing.T) {
 			url:        "file://this/file/does/not/exist",
 			wantGetErr: true,
 		},
+		{
+			name:       "Unreadable file",
+			url:        "file:.",
+			wantGetErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -42,6 +47,12 @@ func TestFileFromURLThenGet(t *testing.T) {
 			_, err = provider.Get(context.Background())
 			if (err != nil) != tt.wantGetErr {
 				t.Errorf("Get() error = %v, wantGetErr %v", err, tt.wantGetErr)
+			}
+			if err == nil {
+				_, err = provider.Get(context.Background())
+				if err != ErrNoChange {
+					t.Error("Should have had ErrNoChange, but instead got", err)
+				}
 			}
 		})
 	}
