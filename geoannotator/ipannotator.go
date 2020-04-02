@@ -8,12 +8,13 @@ import (
 	"net"
 	"sync"
 
+	"github.com/m-lab/go/contentprovider"
 	"github.com/m-lab/go/rtx"
 	"github.com/oschwald/geoip2-golang"
 
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/rawfile"
+	"github.com/m-lab/uuid-annotator/tarreader"
 )
 
 // GeoAnnotator is just a regular annotator with a Reload method and an AnnotateIP method.
@@ -27,7 +28,7 @@ type GeoAnnotator interface {
 type geoannotator struct {
 	mut               sync.RWMutex
 	localIPs          []net.IP
-	backingDataSource rawfile.Provider
+	backingDataSource contentprovider.Provider
 	maxmind           *geoip2.Reader
 }
 
@@ -137,13 +138,13 @@ func (g *geoannotator) Reload(ctx context.Context) {
 // load unconditionally loads datasets and returns them.
 func (g *geoannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 	tgz, err := g.backingDataSource.Get(ctx)
-	if err == rawfile.ErrNoChange {
+	if err == contentprovider.ErrNoChange {
 		return g.maxmind, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	data, err := rawfile.FromTarGZ(tgz, "GeoLite2-City.mmdb")
+	data, err := tarreader.FromTarGZ(tgz, "GeoLite2-City.mmdb")
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +154,7 @@ func (g *geoannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 // New makes a new Annotator that uses IP addresses to generate geolocation and
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
-func New(ctx context.Context, geo rawfile.Provider, localIPs []net.IP) GeoAnnotator {
+func New(ctx context.Context, geo contentprovider.Provider, localIPs []net.IP) GeoAnnotator {
 	g := &geoannotator{
 		backingDataSource: geo,
 		localIPs:          localIPs,

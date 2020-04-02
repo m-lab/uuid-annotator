@@ -10,42 +10,41 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
+	"github.com/m-lab/go/contentprovider"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
-var local4Rawfile rawfile.Provider
-var local6Rawfile rawfile.Provider
-var localASNamesfile rawfile.Provider
-var corruptFile rawfile.Provider
+var local4Rawfile contentprovider.Provider
+var local6Rawfile contentprovider.Provider
+var localASNamesfile contentprovider.Provider
+var corruptFile contentprovider.Provider
 var localIPs []net.IP
 
 func setUp() {
 	var err error
 	u4, err := url.Parse("file:../testdata/RouteViewIPv4.pfx2as.gz")
 	rtx.Must(err, "Could not parse URL")
-	local4Rawfile, err = rawfile.FromURL(context.Background(), u4)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	local4Rawfile, err = contentprovider.FromURL(context.Background(), u4)
+	rtx.Must(err, "Could not create contentprovider.Provider")
 
 	u6, err := url.Parse("file:../testdata/RouteViewIPv6.pfx2as.gz")
 	rtx.Must(err, "Could not parse URL")
-	local6Rawfile, err = rawfile.FromURL(context.Background(), u6)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	local6Rawfile, err = contentprovider.FromURL(context.Background(), u6)
+	rtx.Must(err, "Could not create contentprovider.Provider")
 
 	asn, err := url.Parse("file:../data/asnames.ipinfo.csv")
 	rtx.Must(err, "Could not parse URL")
-	localASNamesfile, err = rawfile.FromURL(context.Background(), asn)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	localASNamesfile, err = contentprovider.FromURL(context.Background(), asn)
+	rtx.Must(err, "Could not create contentprovider.Provider")
 
 	cor, err := url.Parse("file:../testdata/corrupt.gz")
 	rtx.Must(err, "Could not parse URL")
-	corruptFile, err = rawfile.FromURL(context.Background(), cor)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	corruptFile, err = contentprovider.FromURL(context.Background(), cor)
+	rtx.Must(err, "Could not create contentprovider.Provider")
 
-	log.SetFlags(0) // log.Lshortfile | log.LstdFlags)
-
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }
 
 func Test_asnAnnotator_Annotate(t *testing.T) {
@@ -209,9 +208,9 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 	setUp()
 	tests := []struct {
 		name       string
-		as4        rawfile.Provider
-		as6        rawfile.Provider
-		asnamedata rawfile.Provider
+		as4        contentprovider.Provider
+		as6        contentprovider.Provider
+		asnamedata contentprovider.Provider
 	}{
 		{
 			name:       "success",
@@ -227,7 +226,7 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 		},
 		{
 			name:       "v4-no-change",
-			as4:        badProvider{rawfile.ErrNoChange},
+			as4:        badProvider{contentprovider.ErrNoChange},
 			as6:        local6Rawfile,
 			asnamedata: localASNamesfile,
 		},
@@ -240,7 +239,7 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 		{
 			name:       "v6-no-change",
 			as4:        local4Rawfile,
-			as6:        badProvider{rawfile.ErrNoChange},
+			as6:        badProvider{contentprovider.ErrNoChange},
 			asnamedata: localASNamesfile,
 		},
 		{
@@ -253,7 +252,7 @@ func Test_asnAnnotator_Reload(t *testing.T) {
 			name:       "names-no-change",
 			as4:        local4Rawfile,
 			as6:        local6Rawfile,
-			asnamedata: badProvider{rawfile.ErrNoChange},
+			asnamedata: badProvider{contentprovider.ErrNoChange},
 		},
 		{
 			name:       "names-not-a-csv",

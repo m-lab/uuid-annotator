@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
+	"github.com/m-lab/go/contentprovider"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
 type badProvider struct {
@@ -24,20 +24,20 @@ func (b badProvider) Get(_ context.Context) ([]byte, error) {
 }
 
 var (
-	localRawfile rawfile.Provider
-	corruptFile  rawfile.Provider
+	localRawfile contentprovider.Provider
+	corruptFile  contentprovider.Provider
 )
 
 func setUp() {
 	u, err := url.Parse("file:../testdata/annotations.json")
 	rtx.Must(err, "Could not parse URL")
-	localRawfile, err = rawfile.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	localRawfile, err = contentprovider.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create contentprovider.Provider")
 
 	u, err = url.Parse("file:../testdata/corrupt-annotations.json")
 	rtx.Must(err, "Could not parse URL")
-	corruptFile, err = rawfile.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	corruptFile, err = contentprovider.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create contentprovider.Provider")
 }
 
 func TestNew(t *testing.T) {
@@ -76,7 +76,7 @@ func TestNew(t *testing.T) {
 	tests := []struct {
 		name     string
 		localIPs []net.IP
-		provider *rawfile.Provider
+		provider *contentprovider.Provider
 		hostname string
 		ID       *inetdiag.SockID
 		want     annotator.Annotations
@@ -198,10 +198,10 @@ func TestNew(t *testing.T) {
 	}
 }
 func Test_srvannotator_load(t *testing.T) {
-	var bad rawfile.Provider
+	var bad contentprovider.Provider
 	tests := []struct {
 		name     string
-		provider *rawfile.Provider
+		provider *contentprovider.Provider
 		hostname string
 		ID       *inetdiag.SockID
 		want     *annotator.ServerAnnotations

@@ -6,13 +6,14 @@ import (
 	"net"
 	"sync"
 
+	"github.com/m-lab/go/contentprovider"
 	"github.com/m-lab/go/rtx"
 
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/ipinfo"
-	"github.com/m-lab/uuid-annotator/rawfile"
 	"github.com/m-lab/uuid-annotator/routeview"
+	"github.com/m-lab/uuid-annotator/tarreader"
 )
 
 // ASNAnnotator is just a regular annotator with a Reload method and an AnnotateIP method.
@@ -26,9 +27,9 @@ type ASNAnnotator interface {
 type asnAnnotator struct {
 	m          sync.RWMutex
 	localIPs   []net.IP
-	as4        rawfile.Provider
-	as6        rawfile.Provider
-	asnamedata rawfile.Provider
+	as4        contentprovider.Provider
+	as6        contentprovider.Provider
+	asnamedata contentprovider.Provider
 	asn4       routeview.Index
 	asn6       routeview.Index
 	asnames    ipinfo.ASNames
@@ -36,7 +37,7 @@ type asnAnnotator struct {
 
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
 // that IP based on the current copy of RouteViews data stored in the given providers.
-func New(ctx context.Context, as4 rawfile.Provider, as6 rawfile.Provider, asnamedata rawfile.Provider, localIPs []net.IP) ASNAnnotator {
+func New(ctx context.Context, as4 contentprovider.Provider, as6 contentprovider.Provider, asnamedata contentprovider.Provider, localIPs []net.IP) ASNAnnotator {
 	a := &asnAnnotator{
 		as4:        as4,
 		as6:        as6,
@@ -139,9 +140,9 @@ func (a *asnAnnotator) Reload(ctx context.Context) {
 	a.asnames = newnames
 }
 
-func load(ctx context.Context, src rawfile.Provider, oldvalue routeview.Index) (routeview.Index, error) {
+func load(ctx context.Context, src contentprovider.Provider, oldvalue routeview.Index) (routeview.Index, error) {
 	gz, err := src.Get(ctx)
-	if err == rawfile.ErrNoChange {
+	if err == contentprovider.ErrNoChange {
 		return oldvalue, nil
 	}
 	if err != nil {
@@ -151,16 +152,16 @@ func load(ctx context.Context, src rawfile.Provider, oldvalue routeview.Index) (
 }
 
 func loadGZ(gz []byte) (routeview.Index, error) {
-	data, err := rawfile.FromGZ(gz)
+	data, err := tarreader.FromGZ(gz)
 	if err != nil {
 		return nil, err
 	}
 	return routeview.ParseRouteView(data), nil
 }
 
-func loadNames(ctx context.Context, src rawfile.Provider, oldvalue ipinfo.ASNames) (ipinfo.ASNames, error) {
+func loadNames(ctx context.Context, src contentprovider.Provider, oldvalue ipinfo.ASNames) (ipinfo.ASNames, error) {
 	data, err := src.Get(ctx)
-	if err == rawfile.ErrNoChange {
+	if err == contentprovider.ErrNoChange {
 		return oldvalue, nil
 	}
 	if err != nil {
