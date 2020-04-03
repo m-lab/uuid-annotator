@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/m-lab/go/contentprovider"
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/rtx"
 
 	"github.com/m-lab/tcp-info/inetdiag"
@@ -27,9 +27,9 @@ type ASNAnnotator interface {
 type asnAnnotator struct {
 	m          sync.RWMutex
 	localIPs   []net.IP
-	as4        contentprovider.Provider
-	as6        contentprovider.Provider
-	asnamedata contentprovider.Provider
+	as4        content.Provider
+	as6        content.Provider
+	asnamedata content.Provider
 	asn4       routeview.Index
 	asn6       routeview.Index
 	asnames    ipinfo.ASNames
@@ -37,7 +37,7 @@ type asnAnnotator struct {
 
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
 // that IP based on the current copy of RouteViews data stored in the given providers.
-func New(ctx context.Context, as4 contentprovider.Provider, as6 contentprovider.Provider, asnamedata contentprovider.Provider, localIPs []net.IP) ASNAnnotator {
+func New(ctx context.Context, as4 content.Provider, as6 content.Provider, asnamedata content.Provider, localIPs []net.IP) ASNAnnotator {
 	a := &asnAnnotator{
 		as4:        as4,
 		as6:        as6,
@@ -140,9 +140,9 @@ func (a *asnAnnotator) Reload(ctx context.Context) {
 	a.asnames = newnames
 }
 
-func load(ctx context.Context, src contentprovider.Provider, oldvalue routeview.Index) (routeview.Index, error) {
+func load(ctx context.Context, src content.Provider, oldvalue routeview.Index) (routeview.Index, error) {
 	gz, err := src.Get(ctx)
-	if err == contentprovider.ErrNoChange {
+	if err == content.ErrNoChange {
 		return oldvalue, nil
 	}
 	if err != nil {
@@ -159,9 +159,9 @@ func loadGZ(gz []byte) (routeview.Index, error) {
 	return routeview.ParseRouteView(data), nil
 }
 
-func loadNames(ctx context.Context, src contentprovider.Provider, oldvalue ipinfo.ASNames) (ipinfo.ASNames, error) {
+func loadNames(ctx context.Context, src content.Provider, oldvalue ipinfo.ASNames) (ipinfo.ASNames, error) {
 	data, err := src.Get(ctx)
-	if err == contentprovider.ErrNoChange {
+	if err == content.ErrNoChange {
 		return oldvalue, nil
 	}
 	if err != nil {

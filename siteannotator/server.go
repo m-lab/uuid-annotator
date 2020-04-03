@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/m-lab/go/contentprovider"
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/host"
 	"github.com/m-lab/go/rtx"
 
@@ -19,7 +19,7 @@ import (
 type siteAnnotator struct {
 	m              sync.RWMutex
 	localIPs       []net.IP
-	siteinfoSource contentprovider.Provider
+	siteinfoSource content.Provider
 	hostname       string
 	server         *annotator.ServerAnnotations
 	v4             net.IPNet
@@ -31,7 +31,7 @@ type siteAnnotator struct {
 var ErrHostnameNotFound = errors.New("Hostname Not Found")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
-func New(ctx context.Context, hostname string, js contentprovider.Provider, localIPs []net.IP) annotator.Annotator {
+func New(ctx context.Context, hostname string, js content.Provider, localIPs []net.IP) annotator.Annotator {
 	g := &siteAnnotator{
 		siteinfoSource: js,
 		hostname:       hostname,

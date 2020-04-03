@@ -8,7 +8,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/m-lab/go/contentprovider"
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/rtx"
 	"github.com/oschwald/geoip2-golang"
 
@@ -28,7 +28,7 @@ type GeoAnnotator interface {
 type geoannotator struct {
 	mut               sync.RWMutex
 	localIPs          []net.IP
-	backingDataSource contentprovider.Provider
+	backingDataSource content.Provider
 	maxmind           *geoip2.Reader
 }
 
@@ -138,7 +138,7 @@ func (g *geoannotator) Reload(ctx context.Context) {
 // load unconditionally loads datasets and returns them.
 func (g *geoannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 	tgz, err := g.backingDataSource.Get(ctx)
-	if err == contentprovider.ErrNoChange {
+	if err == content.ErrNoChange {
 		return g.maxmind, nil
 	}
 	if err != nil {
@@ -154,7 +154,7 @@ func (g *geoannotator) load(ctx context.Context) (*geoip2.Reader, error) {
 // New makes a new Annotator that uses IP addresses to generate geolocation and
 // ASNumber metadata for that IP based on the current copy of MaxMind data
 // stored in GCS.
-func New(ctx context.Context, geo contentprovider.Provider, localIPs []net.IP) GeoAnnotator {
+func New(ctx context.Context, geo content.Provider, localIPs []net.IP) GeoAnnotator {
 	g := &geoannotator{
 		backingDataSource: geo,
 		localIPs:          localIPs,

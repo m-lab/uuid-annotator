@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/m-lab/go/contentprovider"
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/flagx"
 	"github.com/m-lab/go/memoryless"
 	"github.com/m-lab/go/prometheusx"
@@ -36,7 +36,7 @@ var (
 	// Reloading relatively frequently should be fine as long as (a) download
 	// failure is non-fatal for reloads and (b) cache-checking actually works so
 	// that we don't re-download the data until it is new. The first condition is
-	// enforced in the geoannotator package, and the second in contentprovider.
+	// enforced in the geoannotator package, and the second in content.
 	reloadMin  = flag.Duration("reloadmin", time.Hour, "Minimum time to wait between reloads of backing data")
 	reloadTime = flag.Duration("reloadtime", 5*time.Hour, "Expected time to wait between reloads of backing data")
 	reloadMax  = flag.Duration("reloadmax", 24*time.Hour, "Maximum time to wait between reloads of backing data")
@@ -87,19 +87,19 @@ func main() {
 	localAddrs, err := net.InterfaceAddrs()
 	rtx.Must(err, "Could not read local addresses")
 	localIPs := findLocalIPs(localAddrs)
-	p, err := contentprovider.FromURL(mainCtx, maxmindurl.URL)
+	p, err := content.FromURL(mainCtx, maxmindurl.URL)
 	rtx.Must(err, "Could not get maxmind data from url")
 	geo := geoannotator.New(mainCtx, p, localIPs)
 
-	p4, err := contentprovider.FromURL(mainCtx, routeviewv4.URL)
+	p4, err := content.FromURL(mainCtx, routeviewv4.URL)
 	rtx.Must(err, "Could not load routeview v4 URL")
-	p6, err := contentprovider.FromURL(mainCtx, routeviewv6.URL)
+	p6, err := content.FromURL(mainCtx, routeviewv6.URL)
 	rtx.Must(err, "Could not load routeview v6 URL")
-	asnames, err := contentprovider.FromURL(mainCtx, asnameurl.URL)
+	asnames, err := content.FromURL(mainCtx, asnameurl.URL)
 	rtx.Must(err, "Could not load AS names URL")
 	asn := asnannotator.New(mainCtx, p4, p6, asnames, localIPs)
 
-	js, err := contentprovider.FromURL(mainCtx, siteinfo.URL)
+	js, err := content.FromURL(mainCtx, siteinfo.URL)
 	rtx.Must(err, "Could not load siteinfo URL")
 	site := siteannotator.New(mainCtx, *hostname, js, localIPs)
 

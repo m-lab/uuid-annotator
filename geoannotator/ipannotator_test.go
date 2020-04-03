@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
-	"github.com/m-lab/go/contentprovider"
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/pretty"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
@@ -20,9 +20,9 @@ import (
 	"github.com/m-lab/uuid-annotator/tarreader"
 )
 
-var localRawfile contentprovider.Provider
-var localWrongType contentprovider.Provider
-var localEmpty contentprovider.Provider
+var localRawfile content.Provider
+var localWrongType content.Provider
+var localEmpty content.Provider
 
 // Networks taken from https://github.com/maxmind/MaxMind-DB/blob/master/source-data/GeoIP2-City-Test.json
 var localIP = "175.16.199.3"
@@ -32,18 +32,18 @@ func setUp() {
 	var err error
 	u, err := url.Parse("file:../testdata/fake.tar.gz")
 	rtx.Must(err, "Could not parse URL")
-	localRawfile, err = contentprovider.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create contentprovider.Provider")
+	localRawfile, err = content.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create content.Provider")
 
 	u, err = url.Parse("file:../testdata/wrongtype.tar.gz")
 	rtx.Must(err, "Could not parse URL")
-	localWrongType, err = contentprovider.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create contentprovider.Provider")
+	localWrongType, err = content.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create content.Provider")
 
 	u, err = url.Parse("file:../testdata/empty.tar.gz")
 	rtx.Must(err, "Could not parse URL")
-	localEmpty, err = contentprovider.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create contentprovider.Provider")
+	localEmpty, err = content.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create content.Provider")
 
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }
@@ -220,7 +220,7 @@ func TestIPAnnotationLoadNoChange(t *testing.T) {
 	ctx := context.Background()
 	fakeReader := geoip2.Reader{}
 	g := geoannotator{
-		backingDataSource: badProvider{contentprovider.ErrNoChange},
+		backingDataSource: badProvider{content.ErrNoChange},
 		localIPs:          []net.IP{net.ParseIP(localIP)},
 		maxmind:           &fakeReader, // NOTE: fake pointer just to verify return value below.
 	}

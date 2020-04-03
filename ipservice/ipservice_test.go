@@ -14,7 +14,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/m-lab/go/contentprovider"
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/asnannotator"
@@ -32,16 +32,16 @@ func init() {
 	// Set up ASN annotator.
 	u4, err := url.Parse("file:../testdata/RouteViewIPv4.pfx2as.gz")
 	rtx.Must(err, "Could not parse URL")
-	local4Rawfile, err := contentprovider.FromURL(context.Background(), u4)
-	rtx.Must(err, "Could not create contentprovider.Provider")
+	local4Rawfile, err := content.FromURL(context.Background(), u4)
+	rtx.Must(err, "Could not create content.Provider")
 	u6, err := url.Parse("file:../testdata/RouteViewIPv6.pfx2as.gz")
 	rtx.Must(err, "Could not parse URL")
-	local6Rawfile, err := contentprovider.FromURL(context.Background(), u6)
-	rtx.Must(err, "Could not create contentprovider.Provider")
+	local6Rawfile, err := content.FromURL(context.Background(), u6)
+	rtx.Must(err, "Could not create content.Provider")
 	as, err := url.Parse("file:../data/asnames.ipinfo.csv")
 	rtx.Must(err, "Could not parse URL")
-	localASNamesfile, err := contentprovider.FromURL(context.Background(), as)
-	rtx.Must(err, "Could not create contentprovider.Provider")
+	localASNamesfile, err := content.FromURL(context.Background(), as)
+	rtx.Must(err, "Could not create content.Provider")
 
 	localIPs := []net.IP{
 		net.ParseIP("9.0.0.9"),
@@ -52,8 +52,8 @@ func init() {
 	// Set up geo annotator.
 	u, err := url.Parse("file:../testdata/fake.tar.gz")
 	rtx.Must(err, "Could not parse URL")
-	localRawfile, err := contentprovider.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create contentprovider.Provider")
+	localRawfile, err := content.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create content.Provider")
 	geo = geoannotator.New(ctx, localRawfile, localIPs)
 }
 
