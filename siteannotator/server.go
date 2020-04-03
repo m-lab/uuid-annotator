@@ -7,19 +7,19 @@ import (
 	"net"
 	"sync"
 
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/host"
 	"github.com/m-lab/go/rtx"
 
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/rawfile"
 )
 
 // siteAnnotator is the central struct for this module.
 type siteAnnotator struct {
 	m              sync.RWMutex
 	localIPs       []net.IP
-	siteinfoSource rawfile.Provider
+	siteinfoSource content.Provider
 	hostname       string
 	server         *annotator.ServerAnnotations
 	v4             net.IPNet
@@ -31,7 +31,7 @@ type siteAnnotator struct {
 var ErrHostnameNotFound = errors.New("Hostname Not Found")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
-func New(ctx context.Context, hostname string, js rawfile.Provider, localIPs []net.IP) annotator.Annotator {
+func New(ctx context.Context, hostname string, js content.Provider, localIPs []net.IP) annotator.Annotator {
 	g := &siteAnnotator{
 		siteinfoSource: js,
 		hostname:       hostname,

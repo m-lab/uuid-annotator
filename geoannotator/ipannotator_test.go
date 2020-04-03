@@ -10,18 +10,19 @@ import (
 	"testing"
 
 	"github.com/go-test/deep"
+	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/pretty"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/oschwald/geoip2-golang"
 
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/rawfile"
+	"github.com/m-lab/uuid-annotator/tarreader"
 )
 
-var localRawfile rawfile.Provider
-var localWrongType rawfile.Provider
-var localEmpty rawfile.Provider
+var localRawfile content.Provider
+var localWrongType content.Provider
+var localEmpty content.Provider
 
 // Networks taken from https://github.com/maxmind/MaxMind-DB/blob/master/source-data/GeoIP2-City-Test.json
 var localIP = "175.16.199.3"
@@ -31,18 +32,18 @@ func setUp() {
 	var err error
 	u, err := url.Parse("file:../testdata/fake.tar.gz")
 	rtx.Must(err, "Could not parse URL")
-	localRawfile, err = rawfile.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	localRawfile, err = content.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create content.Provider")
 
 	u, err = url.Parse("file:../testdata/wrongtype.tar.gz")
 	rtx.Must(err, "Could not parse URL")
-	localWrongType, err = rawfile.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	localWrongType, err = content.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create content.Provider")
 
 	u, err = url.Parse("file:../testdata/empty.tar.gz")
 	rtx.Must(err, "Could not parse URL")
-	localEmpty, err = rawfile.FromURL(context.Background(), u)
-	rtx.Must(err, "Could not create rawfile.Provider")
+	localEmpty, err = content.FromURL(context.Background(), u)
+	rtx.Must(err, "Could not create content.Provider")
 
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }
@@ -219,7 +220,7 @@ func TestIPAnnotationLoadNoChange(t *testing.T) {
 	ctx := context.Background()
 	fakeReader := geoip2.Reader{}
 	g := geoannotator{
-		backingDataSource: badProvider{rawfile.ErrNoChange},
+		backingDataSource: badProvider{content.ErrNoChange},
 		localIPs:          []net.IP{net.ParseIP(localIP)},
 		maxmind:           &fakeReader, // NOTE: fake pointer just to verify return value below.
 	}
@@ -294,8 +295,8 @@ func TestIPAnnotationMissingCityDB(t *testing.T) {
 	}
 
 	mm, err := g.load(ctx)
-	if err != rawfile.ErrFileNotFound {
-		t.Errorf("geoannotator.load() returned wrong error; got %q, want %q", err, rawfile.ErrFileNotFound)
+	if err != tarreader.ErrFileNotFound {
+		t.Errorf("geoannotator.load() returned wrong error; got %q, want %q", err, tarreader.ErrFileNotFound)
 	}
 	if mm != nil {
 		t.Errorf("geoannotator.load() return non-nil ptr; got %v, want nil", mm)

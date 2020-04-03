@@ -13,7 +13,7 @@ import (
 	"github.com/m-lab/annotation-service/asn"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/uuid-annotator/annotator"
-	"github.com/m-lab/uuid-annotator/rawfile"
+	"github.com/m-lab/uuid-annotator/tarreader"
 )
 
 var ns Index
@@ -24,7 +24,7 @@ func init() {
 	// Load file in setup for Benchmark.
 	b, err := ioutil.ReadFile("../testdata/RouteViewIPv4.pfx2as.gz")
 	rtx.Must(err, "Failed to read routeview data")
-	b2, err := rawfile.FromGZ(b)
+	b2, err := tarreader.FromGZ(b)
 	rtx.Must(err, "Failed to decompress routeview")
 	ns = ParseRouteView(b2)
 
@@ -61,7 +61,7 @@ func TestParseRouteView(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gz, err := ioutil.ReadFile(tt.filename)
 			rtx.Must(err, "Failed to read routeview data")
-			b, err := rawfile.FromGZ(gz)
+			b, err := tarreader.FromGZ(gz)
 			rtx.Must(err, "Failed to decompress routeview")
 
 			ns := ParseRouteView(b)
@@ -169,7 +169,7 @@ func TestIndex_Search(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gz, err := ioutil.ReadFile(tt.filename)
 			rtx.Must(err, "Failed to read routeview data")
-			b, err := rawfile.FromGZ(gz)
+			b, err := tarreader.FromGZ(gz)
 			rtx.Must(err, "Failed to decompress routeview")
 			ns := ParseRouteView(b)
 

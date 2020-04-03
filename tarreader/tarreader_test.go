@@ -1,4 +1,4 @@
-package rawfile
+package tarreader
 
 import (
 	"io/ioutil"
