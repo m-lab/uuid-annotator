@@ -50,6 +50,7 @@ func init() {
 	flag.Var(&maxmindurl, "maxmind.url", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
 	flag.Var(&routeviewv4, "routeview-v4.url", "The URL for the RouteViewIPv4 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	flag.Var(&routeviewv6, "routeview-v6.url", "The URL for the RouteViewIPv6 file containing ASN metadata. gs:// and file:// schemes accepted.")
+	flag.Var(&asnameurl, "asname.url", "The URL for the ASName CSV file containing a mapping of AS numbers to AS names provided by IPInfo.io")
 	flag.Var(&siteinfo, "siteinfo.url", "The URL for the Siteinfo JSON file containing server location and ASN metadata. gs:// and file:// schemes accepted.")
 	log.SetFlags(log.LstdFlags | log.LUTC | log.Llongfile)
 }
