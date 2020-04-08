@@ -16,6 +16,6 @@ COPY ./data/asnames.ipinfo.csv /data/asnames.ipinfo.csv
 # parameter, just like we do with the IP->AS mapping and the IP->geo mapping.
 # For now, to prove to ourselves and IPInfo.io that doing that work might be
 # worth it, we ship the 3.7MB data file with the binary.
-ENV SITEINFO_URL file:///data/asnames.ipinfo.csv
+ENV ASNAME_URL file:///data/asnames.ipinfo.csv
 WORKDIR /
 ENTRYPOINT ["/uuid-annotator"]
