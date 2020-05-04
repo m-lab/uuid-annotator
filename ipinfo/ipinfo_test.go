@@ -33,8 +33,8 @@ func TestParse(t *testing.T) {
 			want: ASNames{},
 		},
 		{
-			name: "Not a CSV",
-			data: []byte("two,records\nonerecord\n"),
+			name:    "Not a CSV",
+			data:    []byte("two,records\nonerecord\n"),
 			wantErr: true,
 		},
 	}

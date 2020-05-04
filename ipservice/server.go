@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/m-lab/go/errorx"
 	"github.com/m-lab/go/rtx"
@@ -110,6 +111,11 @@ func NewServer(sockfilename string, asn asnannotator.ASNAnnotator, geo geoannota
 	if sockfilename != *SocketFilename {
 		log.Printf("WARNING: socket filename of %q differs from command-line flag value of %q\n", sockfilename, *SocketFilename)
 	}
+	// Unconditionally attempt to remove the file before you make a new one with
+	// that name. It is possible for race conditions in container starting to
+	// mean that prior start attempts have left an old bad socket file in the
+	// way.
+	os.Remove(sockfilename)
 	listener, err := net.Listen("unix", sockfilename)
 	if err != nil {
 		return nil, err

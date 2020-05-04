@@ -96,7 +96,7 @@ func TestServerAndClientE2E(t *testing.T) {
 			name: "Localhost-v4",
 			ips:  []string{"127.0.0.1"},
 			want: map[string]*annotator.ClientAnnotations{
-				"127.0.0.1": &annotator.ClientAnnotations{
+				"127.0.0.1": {
 					Network: &annotator.Network{
 						Missing: true,
 					},
@@ -110,7 +110,7 @@ func TestServerAndClientE2E(t *testing.T) {
 			name: "Localhost-v6",
 			ips:  []string{"::1"},
 			want: map[string]*annotator.ClientAnnotations{
-				"::1": &annotator.ClientAnnotations{
+				"::1": {
 					Network: &annotator.Network{
 						Missing: true,
 					},
@@ -124,7 +124,7 @@ func TestServerAndClientE2E(t *testing.T) {
 			name: "IP that has everything",
 			ips:  []string{"2.125.160.216"},
 			want: map[string]*annotator.ClientAnnotations{
-				"2.125.160.216": &annotator.ClientAnnotations{
+				"2.125.160.216": {
 					Network: &annotator.Network{
 						CIDR:     "2.120.0.0/13",
 						ASNumber: 5607,
@@ -154,7 +154,7 @@ func TestServerAndClientE2E(t *testing.T) {
 			name: "Multiple IPs",
 			ips:  []string{"2.125.160.216", "127.0.0.1"},
 			want: map[string]*annotator.ClientAnnotations{
-				"2.125.160.216": &annotator.ClientAnnotations{
+				"2.125.160.216": {
 					Network: &annotator.Network{
 						CIDR:     "2.120.0.0/13",
 						ASNumber: 5607,
@@ -178,7 +178,7 @@ func TestServerAndClientE2E(t *testing.T) {
 						AccuracyRadiusKm:    100,
 					},
 				},
-				"127.0.0.1": &annotator.ClientAnnotations{
+				"127.0.0.1": {
 					Network: &annotator.Network{
 						Missing: true,
 					},
@@ -211,17 +211,15 @@ func TestServerAndClientE2E(t *testing.T) {
 	wg.Wait()
 }
 
-func TestNewServerError(t *testing.T) {
-	// Server creation fails when the socket file already exists. So make a file
-	// and use its name to generate an error.
+func TestNewServerWithExistingFile(t *testing.T) {
+	// Server creation should succeed even when the socket file already exists.
+	// So make a file and use its name to start the server, hopefully without error.
 	f, err := ioutil.TempFile("", "TextNewServerError")
 	rtx.Must(err, "Could not create tempfile")
 	defer os.Remove(f.Name())
 
 	_, err = NewServer(f.Name(), asn, geo)
-	if err == nil {
-		t.Error("We should have had an error, but did not")
-	}
+	rtx.Must(err, "Should not have had an error when starting NewServer wth an existing file")
 }
 
 func TestNewClient(t *testing.T) {
