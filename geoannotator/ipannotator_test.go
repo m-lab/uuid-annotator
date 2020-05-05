@@ -304,6 +304,7 @@ func TestIPAnnotationMissingCityDB(t *testing.T) {
 
 func TestNewFake(t *testing.T) {
 	f := NewFake()
+	f.Reload(context.Background()) // no crash == success
 	ann := &annotator.Geolocation{}
 	ip := net.ParseIP("1.2.3.4")
 	rtx.Must(f.AnnotateIP(ip, &ann), "could not annotate IP")

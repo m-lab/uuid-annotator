@@ -291,6 +291,7 @@ func Test_loadGZ_errors(t *testing.T) {
 
 func TestNewFake(t *testing.T) {
 	f := NewFake()
+	f.Reload(context.Background()) // no crash == success
 	n1 := f.AnnotateIP("1.2.3.4")
 	if n1.ASName != "Test Number Five" {
 		t.Error("Bad return value from AnnotateIP for 1.2.3.4:", n1)
