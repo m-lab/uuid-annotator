@@ -14,10 +14,9 @@ import (
 	"github.com/m-lab/go/pretty"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/tcp-info/inetdiag"
-	"github.com/oschwald/geoip2-golang"
-
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/tarreader"
+	geoip2 "github.com/oschwald/geoip2-golang"
 )
 
 var localRawfile content.Provider
@@ -300,5 +299,16 @@ func TestIPAnnotationMissingCityDB(t *testing.T) {
 	}
 	if mm != nil {
 		t.Errorf("geoannotator.load() return non-nil ptr; got %v, want nil", mm)
+	}
+}
+
+func TestNewFake(t *testing.T) {
+	f := NewFake()
+	f.Reload(context.Background()) // no crash == success
+	ann := &annotator.Geolocation{}
+	ip := net.ParseIP("1.2.3.4")
+	rtx.Must(f.AnnotateIP(ip, &ann), "could not annotate IP")
+	if !ann.Missing {
+		t.Error("Annotation should be missing.")
 	}
 }

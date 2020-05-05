@@ -3,10 +3,16 @@ package ipservice
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
 	"log"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/m-lab/go/rtx"
+	"github.com/m-lab/go/warnonerror"
+	"github.com/m-lab/uuid-annotator/asnannotator"
+	"github.com/m-lab/uuid-annotator/geoannotator"
 )
 
 func Test_logOnError(t *testing.T) {
@@ -108,4 +114,26 @@ func Test_logOnNil(t *testing.T) {
 			}
 		})
 	}
+}
+
+func ExampleServer_forTesting() {
+	dir, err := ioutil.TempDir("", "ExampleFakeServerForTesting")
+	rtx.Must(err, "could not create tempdir")
+	defer os.RemoveAll(dir)
+
+	*SocketFilename = dir + "/ipservice.sock"
+	srv, err := NewServer(*SocketFilename, asnannotator.NewFake(), geoannotator.NewFake())
+	rtx.Must(err, "Could not create server")
+	defer warnonerror.Close(srv, "Could not stop the server")
+
+	go srv.Serve()
+	_, err = os.Stat(*SocketFilename)
+	for err != nil {
+		time.Sleep(time.Millisecond)
+		_, err = os.Stat(*SocketFilename)
+	}
+
+	// Now the server exists, and clients can connect to it via:
+	// c := NewClient(*SocketFilename)
+	// and then you can call c.Annotate() and use the returned values.
 }
