@@ -219,7 +219,19 @@ func TestNewServerWithExistingFile(t *testing.T) {
 	defer os.Remove(f.Name())
 
 	_, err = NewServer(f.Name(), asn, geo)
-	rtx.Must(err, "Should not have had an error when starting NewServer wth an existing file")
+	rtx.Must(err, "Should not have had an error when starting NewServer with an existing file")
+}
+
+func TestNewServerWithBadFile(t *testing.T) {
+	// Server creation should fail when the filename can't be created.
+	dir, err := ioutil.TempDir("", "TextNewServerWithBadFile")
+	rtx.Must(err, "Could not create tempdir")
+	defer os.RemoveAll(dir)
+
+	_, err = NewServer(dir+"/this/subdir/does/not/exist/file.sock", asn, geo)
+	if err == nil {
+		t.Error("Should have had an error when starting NewServer with an uncreateable file")
+	}
 }
 
 func TestNewClient(t *testing.T) {

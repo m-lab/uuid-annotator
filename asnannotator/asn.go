@@ -182,6 +182,9 @@ func (*fakeASNAnnotator) Reload(ctx context.Context) {}
 // v6 IP (1111:2222:3333:4444:5555:6666:7777:8888). This is useful for testing
 // other components when you don't want to carry around canonical datafiles, or
 // for building up a local IP annotation service with known outputs for testing.
+//
+// TODO(http://github.com/m-lab/uuid-annotator/issues/38): Consider moving this
+// fake to its own subpackage.
 func NewFake() ASNAnnotator {
 	f := &fakeASNAnnotator{}
 

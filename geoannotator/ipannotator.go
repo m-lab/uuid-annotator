@@ -181,6 +181,9 @@ func (*fakegeoannotator) Reload(ctx context.Context) {}
 
 // NewFake creates a fake GeoAnnotator that contains no data. This is to aid
 // others in creating their own annotation services for testing.
+//
+// TODO(http://github.com/m-lab/uuid-annotator/issues/38): Consider moving this
+// fake to its own subpackage.
 func NewFake() GeoAnnotator {
 	return &fakegeoannotator{}
 }
