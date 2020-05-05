@@ -74,6 +74,13 @@ func (g *geoannotator) annotateIPHoldingLock(ip net.IP, geo **annotator.Geolocat
 	if ip == nil {
 		return errors.New("can't annotate nil IP")
 	}
+	if g.maxmind == nil {
+		log.Println("No maxmind DB present. This should only occur during testing.")
+		*geo = &annotator.Geolocation{
+			Missing: true,
+		}
+		return nil
+	}
 	record, err := g.maxmind.City(ip)
 	if err != nil {
 		return err
@@ -163,4 +170,17 @@ func New(ctx context.Context, geo content.Provider, localIPs []net.IP) GeoAnnota
 	g.maxmind, err = g.load(ctx)
 	rtx.Must(err, "Could not load annotation db")
 	return g
+}
+
+type fakegeoannotator struct {
+	geoannotator
+}
+
+// Reload does nothing because you can't reload a fake.
+func (*fakegeoannotator) Reload(ctx context.Context) {}
+
+// NewFake creates a fake GeoAnnotator that contains no data. This is to aid
+// others in creating their own annotation services for testing.
+func NewFake() GeoAnnotator {
+	return &fakegeoannotator{}
 }

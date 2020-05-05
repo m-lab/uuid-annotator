@@ -288,3 +288,19 @@ func Test_loadGZ_errors(t *testing.T) {
 		t.Error("Should have had an error, not nil")
 	}
 }
+
+func TestNewFake(t *testing.T) {
+	f := NewFake()
+	n1 := f.AnnotateIP("1.2.3.4")
+	if n1.ASName != "Test Number Five" {
+		t.Error("Bad return value from AnnotateIP for 1.2.3.4:", n1)
+	}
+	n2 := f.AnnotateIP("1111:2222:3333:4444:5555:6666:7777:8888")
+	if n2.ASName != "Test Number Nine" {
+		t.Error("Bad return value from AnnotateIP for 1111:2222:3333:4444:5555:6666:7777:8888:", n2)
+	}
+	n3 := f.AnnotateIP("1.0.0.0")
+	if !n3.Missing {
+		t.Error("Should have had a missing return value, not", n3)
+	}
+}

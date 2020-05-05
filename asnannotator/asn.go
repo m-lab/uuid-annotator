@@ -169,3 +169,42 @@ func loadNames(ctx context.Context, src content.Provider, oldvalue ipinfo.ASName
 	}
 	return ipinfo.Parse(data)
 }
+
+// fakeASNAnnotator is just a real asnAnnotator that has a fixed dataset and
+// can't be reloaded.
+type fakeASNAnnotator struct {
+	asnAnnotator
+}
+
+func (*fakeASNAnnotator) Reload(ctx context.Context) {}
+
+// NewFake returns an annotator that know about just one v4 IP (1.2.3.4) and one
+// v6 IP (1111:2222:3333:4444:5555:6666:7777:8888). This is useful for testing
+// other components when you don't want to carry around canonical datafiles, or
+// for building up a local IP annotation service with known outputs for testing.
+func NewFake() ASNAnnotator {
+	f := &fakeASNAnnotator{}
+
+	// Set up v4 data for 1.2.3.4.
+	asn4Entry := routeview.IPNet{}
+	_, v4net, err := net.ParseCIDR("1.2.3.4/32")
+	rtx.Must(err, "Could not parse fixed string")
+	asn4Entry.IPNet = *v4net
+	asn4Entry.Systems = "5"
+	f.asn4 = routeview.Index{asn4Entry}
+
+	// Set up v6 data for 1111:2222:3333:4444:5555:6666:7777:8888.
+	asn6Entry := routeview.IPNet{}
+	_, v6net, err := net.ParseCIDR("1111:2222:3333:4444:5555:6666:7777:8888/128")
+	rtx.Must(err, "Could not parse fixed string")
+	asn6Entry.IPNet = *v6net
+	asn6Entry.Systems = "9"
+	f.asn6 = routeview.Index{asn6Entry}
+
+	// Set up AS name entries for AS5 and AS9
+	f.asnames = ipinfo.ASNames{
+		5: "Test Number Five",
+		9: "Test Number Nine",
+	}
+	return f
+}
