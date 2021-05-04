@@ -142,6 +142,7 @@ func (e *errFS) Rename(oldname, newname string) error      { e.callback(); retur
 func (e *errFS) Stat(name string) (os.FileInfo, error)     { e.callback(); return nil, errForTesting }
 func (e *errFS) Name() string                              { return "" }
 func (e *errFS) Chmod(name string, mode os.FileMode) error { e.callback(); return errForTesting }
+func (e *errFS) Chown(name string, uid, gid int) error     { e.callback(); return errForTesting }
 func (e *errFS) Chtimes(name string, atime time.Time, mtime time.Time) error {
 	e.callback()
 	return errForTesting
