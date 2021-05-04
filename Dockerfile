@@ -1,5 +1,5 @@
 # Build uuid-annotator
-FROM golang:1.14-alpine as build
+FROM golang:1.15-alpine as build
 RUN apk --no-cache add git
 COPY . /go/src/github.com/m-lab/uuid-annotator
 WORKDIR /go/src/github.com/m-lab/uuid-annotator
