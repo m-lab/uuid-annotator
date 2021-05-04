@@ -42,7 +42,7 @@ func setUp() {
 
 func TestNew(t *testing.T) {
 	setUp()
-	minimalServerAnn := func(site string) annotator.ServerAnnotations {
+	minimalServerAnn := func(site, cidr string) annotator.ServerAnnotations {
 		return annotator.ServerAnnotations{
 			Site:    site,
 			Machine: "mlab1",
@@ -50,11 +50,12 @@ func TestNew(t *testing.T) {
 				City: "New York",
 			},
 			Network: &annotator.Network{
+				CIDR:   cidr,
 				ASName: "TATA COMMUNICATIONS (AMERICA) INC",
 			},
 		}
 	}
-	defaultServerAnn := annotator.ServerAnnotations{
+	defaultServerAnnV4 := annotator.ServerAnnotations{
 		Machine: "mlab1",
 		Site:    "lga03",
 		Geo: &annotator.Geolocation{
@@ -65,6 +66,7 @@ func TestNew(t *testing.T) {
 			Longitude:     -73.8667,
 		},
 		Network: &annotator.Network{
+			CIDR:     "64.86.148.128/26",
 			ASNumber: 6453,
 			ASName:   "TATA COMMUNICATIONS (AMERICA) INC",
 			Systems: []annotator.System{
@@ -94,7 +96,7 @@ func TestNew(t *testing.T) {
 				DstIP: "64.86.148.137",
 			},
 			want: annotator.Annotations{
-				Server: defaultServerAnn,
+				Server: defaultServerAnnV4,
 			},
 		},
 		{
@@ -109,7 +111,7 @@ func TestNew(t *testing.T) {
 				DstIP: "1.0.0.1",
 			},
 			want: annotator.Annotations{
-				Server: defaultServerAnn,
+				Server: defaultServerAnnV4,
 			},
 		},
 		{
@@ -124,7 +126,7 @@ func TestNew(t *testing.T) {
 				DstIP: "2600::1",
 			},
 			want: annotator.Annotations{
-				Server: minimalServerAnn("six02"),
+				Server: minimalServerAnn("six02", "2001:5a0:4300::/64"),
 			},
 		},
 		{
@@ -152,7 +154,7 @@ func TestNew(t *testing.T) {
 				DstIP: "1.0.0.1",
 			},
 			want: annotator.Annotations{
-				Server: minimalServerAnn("six01"),
+				Server: minimalServerAnn("six01", "64.86.148.128/26"),
 			},
 		},
 		{
