@@ -67,6 +67,12 @@ func (g *siteAnnotator) annotate(src string, server *annotator.ServerAnnotations
 	if g.v4.Contains(n) || g.v6.Contains(n) {
 		// NOTE: this will not annotate private IP addrs.
 		*server = *g.server
+		if g.v4.Contains(n) {
+			(*server).Network.CIDR = g.v4.String()
+		}
+		if g.v6.Contains(n) {
+			(*server).Network.CIDR = g.v6.String()
+		}
 	}
 }
 
