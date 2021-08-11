@@ -51,3 +51,21 @@ tcp-info, packet-headers, traceroute-caller, and DISCO. It represents our one
 chance to annotate UUIDs with metadata. As such, the health of the experiment
 service should depend on the health of the UUID annotation service, just like it
 should depend on the other core services.
+
+## Usage
+
+### Stand-alone
+
+If only the local ipservice socket is needed to provide annotations for specific
+IPs, the uuid-annotator may be run in a "stand-alone" mode. This mode does not
+require the tcp-info `-tcpinfo.eventsocket`, `-siteinfo.url`, or `-datadir`
+flags.
+
+```sh
+docker build -t local-annotator .
+docker run -v $PWD/testdata:/testdata -it local-annotator   \
+    -ipservice.sock=/local/uuid-annotator.sock \
+    -maxmind.url=file:///testdata/GeoLite2-City-real.tar.gz \
+    -routeview-v4.url=file:///testdata/RouteViewIPv4.pfx2as.gz \
+    -routeview-v6.url=file:///testdata/RouteViewIPv6.pfx2as.gz
+```
