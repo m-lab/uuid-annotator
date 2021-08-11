@@ -100,10 +100,6 @@ func main() {
 	rtx.Must(err, "Could not load AS names URL")
 	asn := asnannotator.New(mainCtx, p4, p6, asnames, localIPs)
 
-	js, err := content.FromURL(mainCtx, siteinfo.URL)
-	rtx.Must(err, "Could not load siteinfo URL")
-	site := siteannotator.New(mainCtx, *hostname, js, localIPs)
-
 	// Reload the IP annotation config on a randomized schedule.
 	wg.Add(1)
 	go func() {
@@ -121,16 +117,21 @@ func main() {
 		wg.Done()
 	}()
 
-	// Generate .json files for every UUID discovered.
-	h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn, site})
-	wg.Add(1)
-	go func() {
-		h.ProcessIncomingRequests(mainCtx)
-		wg.Done()
-	}()
-
-	// Listen to the event socket to find out about new UUIDs and then process them.
 	if *eventsocket.Filename != "" {
+		// Load the siteinfo annotations for "site" specific metadata.
+		js, err := content.FromURL(mainCtx, siteinfo.URL)
+		rtx.Must(err, "Could not load siteinfo URL")
+		site := siteannotator.New(mainCtx, *hostname, js, localIPs)
+
+		// Generate .json files for every UUID discovered.
+		h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn, site})
+		wg.Add(1)
+		go func() {
+			h.ProcessIncomingRequests(mainCtx)
+			wg.Done()
+		}()
+
+		// Listen to the event socket to find out about new UUIDs and then process them.
 		wg.Add(1)
 		go func() {
 			eventsocket.MustRun(mainCtx, *eventsocket.Filename, h)
