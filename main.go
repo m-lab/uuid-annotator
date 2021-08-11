@@ -130,11 +130,13 @@ func main() {
 	}()
 
 	// Listen to the event socket to find out about new UUIDs and then process them.
-	wg.Add(1)
-	go func() {
-		eventsocket.MustRun(mainCtx, *eventsocket.Filename, h)
-		wg.Done()
-	}()
+	if *eventsocket.Filename != "" {
+		wg.Add(1)
+		go func() {
+			eventsocket.MustRun(mainCtx, *eventsocket.Filename, h)
+			wg.Done()
+		}()
+	}
 
 	// Set up the local service to serve IP annotations as a local service on a
 	// local unix-domain socket.
