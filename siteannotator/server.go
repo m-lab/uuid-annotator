@@ -62,17 +62,22 @@ func (g *siteAnnotator) Annotate(ID *inetdiag.SockID, annotations *annotator.Ann
 	return nil
 }
 
+// NOTE: in a cloud environment, the local IP and public IPs will be in
+// different netblocks. The siteinfo configuration only knows about the public
+// IP address. Rather than exclude annotations for these cases, `annotate()`
+// uses the v4 config (if present) for IPv4 src addresses, and the v6 config (if
+// present) for IPv6 src addresses.
 func (g *siteAnnotator) annotate(src string, server *annotator.ServerAnnotations) {
 	n := net.ParseIP(src)
-	if g.v4.Contains(n) || g.v6.Contains(n) {
-		// NOTE: this will not annotate private IP addrs.
+	switch {
+	case n.To4() != nil && g.v4.IP != nil:
+		// If src and config are IPv4 addresses.
 		*server = *g.server
-		if g.v4.Contains(n) {
-			(*server).Network.CIDR = g.v4.String()
-		}
-		if g.v6.Contains(n) {
-			(*server).Network.CIDR = g.v6.String()
-		}
+		(*server).Network.CIDR = g.v4.String()
+	case n.To4() == nil && g.v6.IP != nil:
+		// If src and config are IPv6 addresses.
+		*server = *g.server
+		(*server).Network.CIDR = g.v6.String()
 	}
 }
 
