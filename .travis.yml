@@ -7,7 +7,7 @@ install:
 - go get -v -t ./...
 
 before_script:
-- go install github.com/mattn/goveralls
+- go install github.com/mattn/goveralls@latest
 
 script:
 - go vet ./...
