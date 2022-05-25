@@ -1,5 +1,5 @@
-[
-   {
+{
+   "mlab1-lga03.mlab-oti.measurement-lab.org": {
       "Annotation": {
          "Geo": {
             "City": "New York",
@@ -9,6 +9,7 @@
             "Longitude": -73.8667,
             "State": "NY"
          },
+         "Machine": "mlab1",
          "Network": {
             "ASName": "TATA COMMUNICATIONS (AMERICA) INC",
             "ASNumber": 6453,
@@ -22,74 +23,78 @@
          },
          "Site": "lga03"
       },
-      "Name": "lga03",
       "Network": {
          "IPv4": "64.86.148.128/26",
          "IPv6": "2001:5a0:4300::/64"
-      }
+      },
+      "Type": "physical"
    },
-   {
+   "mlab1-six02.mlab-sandbox.measurement-lab.org": {
       "Annotation": {
          "Geo": {
             "City": "New York"
          },
+         "Machine": "mlab1",
          "Network": {
             "ASName": "TATA COMMUNICATIONS (AMERICA) INC"
          },
          "Site": "six02"
       },
-      "Name": "six02",
       "Network": {
          "IPv4": "",
          "IPv6": "2001:5a0:4300::/64"
-      }
+      },
+      "Type": "virtual"
    },
-   {
+   "mlab1-six01.mlab-sandbox.measurement-lab.org": {
       "Annotation": {
          "Geo": {
             "City": "New York"
          },
+         "Machine": "mlab1",
          "Network": {
             "ASName": "TATA COMMUNICATIONS (AMERICA) INC"
          },
          "Site": "six01"
       },
-      "Name": "six01",
       "Network": {
          "IPv4": "64.86.148.128/26",
          "IPv6": ""
-      }
+      },
+      "Type": "physical"
    },
-   {
+   "mlab1-bad04.mlab-sandbox.measurement-lab.org": {
       "Annotation": {
          "Geo": {
             "City": "New York"
          },
+         "Machine": "mlab1",
          "Network": {
             "ASName": "TATA COMMUNICATIONS (AMERICA) INC"
          },
          "Site": "bad04"
       },
-      "Name": "bad04",
       "Network": {
          "IPv4": "this-is-not-a-subnet/26",
          "IPv6": "2001:5a0:4300::/64"
-      }
+      },
+      "Type": "physical"
    },
-   {
+   "mlab1-bad06.mlab-sandbox.measurement-lab.org": {
       "Annotation": {
          "Geo": {
             "City": "New York"
          },
+         "Machine": "mlab1",
          "Network": {
             "ASName": "TATA COMMUNICATIONS (AMERICA) INC"
          },
          "Site": "bad06"
       },
-      "Name": "bad06",
       "Network": {
          "IPv4": "64.86.148.128/26",
          "IPv6": "this-is-not-a-subnet/64"
-      }
+      },
+      "Type": "physical"
    }
-]
+}
