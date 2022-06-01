@@ -88,7 +88,7 @@ func TestNew(t *testing.T) {
 			name:     "success-src",
 			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: &localRawfile,
-			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lga03.mlab-sandbox.measurement-lab.org",
 			ID: &inetdiag.SockID{
 				SPort: 1,
 				SrcIP: "1.0.0.1",
@@ -103,7 +103,7 @@ func TestNew(t *testing.T) {
 			name:     "success-dest",
 			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: &localRawfile,
-			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lga03.mlab-sandbox.measurement-lab.org",
 			ID: &inetdiag.SockID{
 				SPort: 1,
 				SrcIP: "64.86.148.137",
@@ -174,7 +174,7 @@ func TestNew(t *testing.T) {
 			name:     "error-neither-ips-are-server",
 			localIPs: []net.IP{net.ParseIP("64.86.148.137")},
 			provider: &localRawfile,
-			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lga03.mlab-sandbox.measurement-lab.org",
 			ID: &inetdiag.SockID{
 				SPort: 1,
 				SrcIP: "2.0.0.2",
@@ -212,7 +212,7 @@ func Test_srvannotator_load(t *testing.T) {
 		{
 			name:     "success",
 			provider: &localRawfile,
-			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lga03.mlab-sandbox.measurement-lab.org",
 			want: &annotator.ServerAnnotations{
 				Site:    "lga03",
 				Machine: "mlab1",
@@ -235,7 +235,7 @@ func Test_srvannotator_load(t *testing.T) {
 		{
 			name:     "success-project-flat-name",
 			provider: &localRawfile,
-			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lga03.mlab-sandbox.measurement-lab.org",
 			want: &annotator.ServerAnnotations{
 				Site:    "lga03",
 				Machine: "mlab1",
@@ -285,13 +285,13 @@ func Test_srvannotator_load(t *testing.T) {
 		{
 			name:     "error-loading-provider",
 			provider: &bad,
-			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lga03.mlab-sandbox.measurement-lab.org",
 			wantErr:  true,
 		},
 		{
 			name:     "error-corrupt-json",
 			provider: &corruptFile,
-			hostname: "mlab1-lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-lga03.mlab-sandbox.measurement-lab.org",
 			wantErr:  true,
 		},
 		{
@@ -303,13 +303,13 @@ func Test_srvannotator_load(t *testing.T) {
 		{
 			name:     "error-bad-name-separator",
 			provider: &localRawfile,
-			hostname: "mlab1=lga03.mlab-oti.measurement-lab.org",
+			hostname: "mlab1=lga03.mlab-sandbox.measurement-lab.org",
 			wantErr:  true,
 		},
 		{
 			name:     "error-hostname-not-in-annotations",
 			provider: &localRawfile,
-			hostname: "mlab1-abc01.mlab-oti.measurement-lab.org",
+			hostname: "mlab1-abc01.mlab-sandbox.measurement-lab.org",
 			wantErr:  true,
 		},
 	}
