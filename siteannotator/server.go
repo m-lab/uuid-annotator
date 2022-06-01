@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/m-lab/go/content"
-	"github.com/m-lab/go/host"
 	"github.com/m-lab/go/rtx"
 
 	"github.com/m-lab/tcp-info/inetdiag"
@@ -28,7 +27,7 @@ type siteAnnotator struct {
 
 // ErrHostnameNotFound is generated when the given hostname cannot be found in the
 // downloaded siteinfo annotations.
-var ErrHostnameNotFound = errors.New("Hostname Not Found")
+var ErrHostnameNotFound = errors.New("hostname not found")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
 func New(ctx context.Context, hostname string, js content.Provider, localIPs []net.IP) annotator.Annotator {
@@ -82,12 +81,12 @@ func (g *siteAnnotator) annotate(src string, server *annotator.ServerAnnotations
 }
 
 type siteinfoAnnotation struct {
-	Name    string
-	Network struct {
+	Annotation annotator.ServerAnnotations
+	Network    struct {
 		IPv4 string
 		IPv6 string
 	}
-	Annotation annotator.ServerAnnotations
+	Type string
 }
 
 func parseCIDR(v4, v6 string) (net.IPNet, net.IPNet, error) {
@@ -115,26 +114,17 @@ func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations,
 	if err != nil {
 		return nil, err
 	}
-	var s []siteinfoAnnotation
-	var result annotator.ServerAnnotations
+	var s map[string]siteinfoAnnotation
 	err = json.Unmarshal(js, &s)
 	if err != nil {
 		return nil, err
 	}
-	h, err := host.Parse(g.hostname)
-	if err != nil {
-		return nil, err
-	}
-	for i := range s {
-		if s[i].Name == h.Site {
-			result = s[i].Annotation // Copy out of array.
-			result.Machine = h.Machine
-			g.v4, g.v6, err = parseCIDR(s[i].Network.IPv4, s[i].Network.IPv6)
-			if err != nil {
-				return nil, err
-			}
-			return &result, nil
+	if v, ok := s[g.hostname]; ok {
+		g.v4, g.v6, err = parseCIDR(v.Network.IPv4, v.Network.IPv6)
+		if err != nil {
+			return nil, err
 		}
+		return &v.Annotation, nil
 	}
 	return nil, ErrHostnameNotFound
 }
