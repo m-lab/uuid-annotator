@@ -1,9 +1,9 @@
 # Build uuid-annotator
-FROM golang:1.17-alpine as build
-RUN apk --no-cache add git
+FROM golang:1.18 as build
 COPY . /go/src/github.com/m-lab/uuid-annotator
 WORKDIR /go/src/github.com/m-lab/uuid-annotator
-RUN go get -v \
+RUN go get -v . && \
+    go install -v \
       -ldflags "-X github.com/m-lab/go/prometheusx.GitShortCommit=$(git log -1 --format=%h)" \
       .
 
