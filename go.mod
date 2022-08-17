@@ -1,6 +1,6 @@
 module github.com/m-lab/uuid-annotator
 
-go 1.17
+go 1.18
 
 require (
 	github.com/go-test/deep v1.0.6
