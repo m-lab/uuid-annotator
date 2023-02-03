@@ -194,7 +194,7 @@ func NewFake() ASNAnnotator {
 	rtx.Must(err, "Could not parse fixed string")
 	asn4Entry.IPNet = *v4net
 	asn4Entry.Systems = "5"
-	f.asn4 = routeview.Index{asn4Entry}
+	f.asn4 = routeview.Index{routeview.NetIndex{asn4Entry}}
 
 	// Set up v6 data for 1111:2222:3333:4444:5555:6666:7777:8888.
 	asn6Entry := routeview.IPNet{}
@@ -202,7 +202,7 @@ func NewFake() ASNAnnotator {
 	rtx.Must(err, "Could not parse fixed string")
 	asn6Entry.IPNet = *v6net
 	asn6Entry.Systems = "9"
-	f.asn6 = routeview.Index{asn6Entry}
+	f.asn6 = routeview.Index{routeview.NetIndex{asn6Entry}}
 
 	// Set up AS name entries for AS5 and AS9
 	f.asnames = ipinfo.ASNames{
