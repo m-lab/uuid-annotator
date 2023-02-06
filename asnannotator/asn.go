@@ -12,6 +12,7 @@ import (
 	"github.com/m-lab/tcp-info/inetdiag"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/ipinfo"
+	"github.com/m-lab/uuid-annotator/metrics"
 	"github.com/m-lab/uuid-annotator/routeview"
 	"github.com/m-lab/uuid-annotator/tarreader"
 )
@@ -93,6 +94,7 @@ func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 			ann.ASName = a.asnames[ann.ASNumber]
 		}
 		// The annotation succeeded with IPv4.
+		metrics.ASNSearches.WithLabelValues("ipv4-success").Inc()
 		return ann
 	}
 
@@ -100,6 +102,7 @@ func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 	if err != nil {
 		// In this case, the search has failed twice.
 		ann.Missing = true
+		metrics.ASNSearches.WithLabelValues("missing").Inc()
 		return ann
 	}
 
@@ -110,6 +113,7 @@ func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 	}
 	ann.CIDR = ipnet.String()
 	// The annotation succeeded with IPv6.
+	metrics.ASNSearches.WithLabelValues("ipv6-success").Inc()
 	return ann
 }
 
