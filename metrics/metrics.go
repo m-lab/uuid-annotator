@@ -45,4 +45,24 @@ var (
 		},
 		[]string{"status"},
 	)
+	RouteViewRows = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "uuid_annotator_routeview_rows_total",
+			Help: "The number of routeview rows parsed or skipped",
+		},
+		[]string{"status"},
+	)
+	RouteViewParsed = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "uuid_annotator_routeview_parsed_total",
+			Help: "The number of times a routeview file has been parsed",
+		},
+	)
+	ASNSearches = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "uuid_annotator_asn_search_total",
+			Help: "The number of ASN annotator searches",
+		},
+		[]string{"status"},
+	)
 )
