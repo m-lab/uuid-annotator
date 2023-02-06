@@ -13,6 +13,7 @@ import (
 
 	"github.com/m-lab/go/logx"
 	"github.com/m-lab/uuid-annotator/annotator"
+	"github.com/m-lab/uuid-annotator/metrics"
 )
 
 // IPNet represents a parsed row in a RouteView file.
@@ -84,9 +85,11 @@ func ParseRouteView(file []byte) Index {
 	for {
 		record, err := r.Read()
 		if err == io.EOF {
+			metrics.RouteViewParsed.Inc()
 			break
 		}
 		if len(record) < 3 {
+			metrics.RouteViewRows.WithLabelValues("missing-fields").Inc()
 			continue
 		}
 		nb, err := strconv.ParseInt(record[1], 10, 32)
@@ -94,6 +97,7 @@ func ParseRouteView(file []byte) Index {
 			// Skip malformed line.
 			skip++
 			log.Println("failed to convert netblock size:", record[1])
+			metrics.RouteViewRows.WithLabelValues("corrupt-netblock").Inc()
 			continue
 		}
 		_, n, err := net.ParseCIDR(record[0] + "/" + record[1])
@@ -101,6 +105,7 @@ func ParseRouteView(file []byte) Index {
 			// Skip malformed line.
 			skip++
 			log.Println("failed to parse CIDR prefix:", record[0], "with netblock:", record[1])
+			metrics.RouteViewRows.WithLabelValues("corrupt-prefix").Inc()
 			continue
 		}
 		if _, ok := sm[record[2]]; !ok {
@@ -108,6 +113,7 @@ func ParseRouteView(file []byte) Index {
 			sm[record[2]] = strings.Repeat(record[2], 1)
 		}
 		parsed++
+		metrics.RouteViewRows.WithLabelValues("parsed").Inc()
 		nim[nb] = append(nim[nb], IPNet{IPNet: *n, Systems: sm[record[2]]})
 	}
 	logx.Debug.Println("Skipped:", skip, "routeview netblocks of", parsed+skip)
