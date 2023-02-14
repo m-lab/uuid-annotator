@@ -10,6 +10,7 @@ import (
 
 	"github.com/m-lab/go/content"
 	"github.com/m-lab/go/flagx"
+	"github.com/m-lab/go/host"
 	"github.com/m-lab/go/memoryless"
 	"github.com/m-lab/go/prometheusx"
 	"github.com/m-lab/go/rtx"
@@ -71,6 +72,19 @@ func main() {
 	flag.Parse()
 	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not get args from environment variables")
 
+	// Parse the node's name into its constituent parts. This ensures that the
+	// value of the -hostname flag is actually valid. Additionally, virtual
+	// nodes which are part of a managed instance group may have a random
+	// suffix, which uuid-annotator cannot use, so we explicitly only include
+	// the parts of the node name that uuid-annotator actually cares about. The
+	// resultant variable mlabHostname should match a machine name in siteinfo's
+	// annotations.json:
+	//
+	// https://siteinfo.mlab-oti.measurementlab.net/v2/sites/annotations.json
+	h, err := host.Parse(*hostname)
+	rtx.Must(err, "Failed to parse -hostname flag value")
+	mlabHostname := h.String()
+
 	defer mainCancel()
 	// A waitgroup that waits for every component goroutine to complete before main exits.
 	wg := sync.WaitGroup{}
@@ -121,7 +135,7 @@ func main() {
 		// Load the siteinfo annotations for "site" specific metadata.
 		js, err := content.FromURL(mainCtx, siteinfo.URL)
 		rtx.Must(err, "Could not load siteinfo URL")
-		site := siteannotator.New(mainCtx, *hostname, js, localIPs)
+		site := siteannotator.New(mainCtx, mlabHostname, js, localIPs)
 
 		// Generate .json files for every UUID discovered.
 		h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn, site})
