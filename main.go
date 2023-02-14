@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"net"
 	"sync"
@@ -84,7 +83,7 @@ func main() {
 	// https://siteinfo.mlab-oti.measurementlab.net/v2/sites/annotations.json
 	h, err := host.Parse(*hostname)
 	rtx.Must(err, "Failed to parse -hostname flag value")
-	mlabHostname := fmt.Sprintf("%s-%s.%s.%s", h.Machine, h.Site, h.Project, h.Domain)
+	mlabHostname := h.String()
 
 	defer mainCancel()
 	// A waitgroup that waits for every component goroutine to complete before main exits.
