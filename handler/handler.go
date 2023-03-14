@@ -29,7 +29,7 @@ type job struct {
 
 func (j *job) WriteFile(dir string, data *annotator.Annotations) error {
 	// Serialize to JSON
-	contents, err := json.MarshalIndent(data, "", "  ")
+	contents, err := json.Marshal(data)
 	rtx.Must(err, "Could not serialize the Annotations struct to JSON. This should never happen.")
 
 	// Create the necessary subdirectories.
