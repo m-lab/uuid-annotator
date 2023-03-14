@@ -1,7 +1,6 @@
 package routeview
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,29 +8,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/m-lab/annotation-service/api"
-	"github.com/m-lab/annotation-service/asn"
 	"github.com/m-lab/go/rtx"
 	"github.com/m-lab/uuid-annotator/annotator"
 	"github.com/m-lab/uuid-annotator/tarreader"
 )
 
-var ns Index
-var an api.Annotator
-
 func init() {
-	var err error
-	// Load file in setup for Benchmark.
-	b, err := ioutil.ReadFile("../testdata/RouteViewIPv4.pfx2as.gz")
-	rtx.Must(err, "Failed to read routeview data")
-	b2, err := tarreader.FromGZ(b)
-	rtx.Must(err, "Failed to decompress routeview")
-	ns = ParseRouteView(b2)
-
-	// Only used for Benchmark.
-	an, err = asn.LoadASNDatasetFromReader(bytes.NewBuffer(b2))
-	rtx.Must(err, "Failed to load api.Annotator")
-
 	log.SetFlags(0)
 }
 
@@ -44,32 +26,44 @@ func TestParseRouteView(t *testing.T) {
 		{
 			name:      "success-ipv4",
 			filename:  "../testdata/RouteViewIPv4.pfx2as.gz",
-			wantCount: 545957,
+			wantCount: 845161,
 		},
 		{
 			name:      "success-ipv6",
 			filename:  "../testdata/RouteViewIPv6.pfx2as.gz",
-			wantCount: 54317,
+			wantCount: 83125,
 		},
 		{
 			name:      "corrupt-ipv4",
-			filename:  "../testdata/RouteViewIPv4.corrupt.gz",
-			wantCount: 6,
+			filename:  "../testdata/RouteViewIPv4.corrupt",
+			wantCount: 50,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gz, err := ioutil.ReadFile(tt.filename)
+			b, err := ioutil.ReadFile(tt.filename)
 			rtx.Must(err, "Failed to read routeview data")
-			b, err := tarreader.FromGZ(gz)
-			rtx.Must(err, "Failed to decompress routeview")
+			if tt.filename[len(tt.filename)-3:] == ".gz" {
+				b, err = tarreader.FromGZ(b)
+				rtx.Must(err, "Failed to decompress routeview")
+			}
 
 			ns := ParseRouteView(b)
-			if len(ns) != tt.wantCount {
-				t.Errorf("Parse() = %v, want %v", len(ns), tt.wantCount)
+			c := countIndex(ns)
+			if c != tt.wantCount {
+				t.Errorf("Parse() = %v, want %v", c, tt.wantCount)
 			}
 		})
 	}
+}
+
+// Count returns the total number of networks in the index.
+func countIndex(ix Index) int {
+	total := 0
+	for i := range ix {
+		total += len(ix[i])
+	}
+	return total
 }
 
 func TestParseSystems(t *testing.T) {
@@ -138,7 +132,7 @@ func TestIndex_Search(t *testing.T) {
 			filename: "../testdata/RouteViewIPv4.pfx2as.gz",
 			src:      "1.0.192.1",
 			want: IPNet{
-				IPNet:   net.IPNet{IP: net.ParseIP("1.0.128.0").To4(), Mask: net.CIDRMask(17, 32)},
+				IPNet:   net.IPNet{IP: net.ParseIP("1.0.192.0").To4(), Mask: net.CIDRMask(21, 32)},
 				Systems: "23969",
 			},
 		},
@@ -192,36 +186,26 @@ func TestIndex_Search(t *testing.T) {
 }
 
 func BenchmarkSearch(b *testing.B) {
-	found := 0
-	missing := 0
-	src := "1.0.192.1"
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		r, err := ns.Search(src)
-		if err != nil {
-			missing++
-		} else {
-			found++
-		}
-		_ = ParseSystems(r.Systems)
-	}
-	fmt.Println("f:", found, "m:", missing)
-}
+	gz, err := ioutil.ReadFile("../testdata/RouteViewIPv4.pfx2as.gz")
+	rtx.Must(err, "Failed to read routeview data")
+	raw, err := tarreader.FromGZ(gz)
+	rtx.Must(err, "Failed to decompress routeview")
+	ns := ParseRouteView(raw)
 
-func BenchmarkAnnotate(b *testing.B) {
 	found := 0
 	missing := 0
-	src := "1.0.192.1"
-	ann := api.Annotations{}
+	src := []string{"1.0.192.1", "12.189.157.193"}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := an.Annotate(src, &ann)
-		if err != nil {
-			missing++
-		} else {
-			found++
+		for _, s := range src {
+			r, err := ns.Search(s)
+			if err != nil {
+				missing++
+			} else {
+				found++
+			}
+			_ = ParseSystems(r.Systems)
 		}
-		ann.Network = nil
 	}
 	fmt.Println("f:", found, "m:", missing)
 }
