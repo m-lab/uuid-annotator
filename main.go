@@ -108,7 +108,7 @@ func main() {
 	// managed instance group's load balancer to localIPs. If uuid-annotator
 	// does not know about the public IP of the load balancer, then it will fail
 	// to annotate anything because it doesn't recognize its own public address
-	// in either the Src of Dest of incoming tcp-info events.
+	// in either the Src or Dest of incoming tcp-info events.
 	js, err := content.FromURL(mainCtx, siteinfo.URL)
 	rtx.Must(err, "Could not load siteinfo URL")
 	site, localIPs := siteannotator.New(mainCtx, mlabHostname, js, localIPs)
