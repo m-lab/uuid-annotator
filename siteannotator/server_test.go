@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -188,7 +189,7 @@ func TestNew(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			setUp()
 			ctx := context.Background()
-			g := New(ctx, tt.hostname, *tt.provider, tt.localIPs)
+			g, _ := New(ctx, tt.hostname, *tt.provider, tt.localIPs)
 			ann := annotator.Annotations{}
 			if err := g.Annotate(tt.ID, &ann); (err != nil) != tt.wantErr {
 				t.Errorf("srvannotator.Annotate() error = %v, wantErr %v", err, tt.wantErr)
@@ -201,13 +202,14 @@ func TestNew(t *testing.T) {
 }
 func Test_srvannotator_load(t *testing.T) {
 	var bad content.Provider
+	var testLocalIPs []net.IP = []net.IP{net.ParseIP("10.0.0.1")}
 	tests := []struct {
-		name     string
-		provider *content.Provider
-		hostname string
-		ID       *inetdiag.SockID
-		want     *annotator.ServerAnnotations
-		wantErr  bool
+		name         string
+		provider     *content.Provider
+		hostname     string
+		want         *annotator.ServerAnnotations
+		wantLocalIPs []net.IP
+		wantErr      bool
 	}{
 		{
 			name:     "success",
@@ -231,6 +233,7 @@ func Test_srvannotator_load(t *testing.T) {
 					},
 				},
 			},
+			wantLocalIPs: testLocalIPs,
 		},
 		{
 			name:     "success-project-flat-name",
@@ -254,6 +257,7 @@ func Test_srvannotator_load(t *testing.T) {
 					},
 				},
 			},
+			wantLocalIPs: testLocalIPs,
 		},
 		{
 			name:     "success-no-six",
@@ -269,6 +273,23 @@ func Test_srvannotator_load(t *testing.T) {
 					ASName: "TATA COMMUNICATIONS (AMERICA) INC",
 				},
 			},
+			wantLocalIPs: testLocalIPs,
+		},
+		{
+			name:     "success-append-localips",
+			provider: &localRawfile,
+			hostname: "mlab1-six06.mlab-sandbox.measurement-lab.org",
+			want: &annotator.ServerAnnotations{
+				Site:    "six06",
+				Machine: "mlab1",
+				Geo: &annotator.Geolocation{
+					City: "New York",
+				},
+				Network: &annotator.Network{
+					ASName: "TATA COMMUNICATIONS (AMERICA) INC",
+				},
+			},
+			wantLocalIPs: append(testLocalIPs, net.ParseIP("64.86.148.129")),
 		},
 		{
 			name:     "error-bad-ipv4",
@@ -322,7 +343,10 @@ func Test_srvannotator_load(t *testing.T) {
 				hostname:       tt.hostname,
 			}
 			ctx := context.Background()
-			an, err := g.load(ctx)
+			an, localIPs, err := g.load(ctx, testLocalIPs)
+			if !reflect.DeepEqual(localIPs, tt.wantLocalIPs) {
+				t.Errorf("srvannotator.load() want localIPs %v, got %v", tt.wantLocalIPs, localIPs)
+			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("srvannotator.Annotate() error = %v, wantErr %v", err, tt.wantErr)
 			}

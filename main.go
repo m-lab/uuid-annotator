@@ -102,6 +102,17 @@ func main() {
 	localAddrs, err := net.InterfaceAddrs()
 	rtx.Must(err, "Could not read local addresses")
 	localIPs := findLocalIPs(localAddrs)
+
+	// Load the siteinfo annotations for "site" specific metadata. Additionally,
+	// if this is a virtual site, New() will append the public IP of the
+	// managed instance group's load balancer to localIPs. If uuid-annotator
+	// does not know about the public IP of the load balancer, then it will fail
+	// to annotate anything because it doesn't recognize its own public address
+	// in either the Src or Dest of incoming tcp-info events.
+	js, err := content.FromURL(mainCtx, siteinfo.URL)
+	rtx.Must(err, "Could not load siteinfo URL")
+	site, localIPs := siteannotator.New(mainCtx, mlabHostname, js, localIPs)
+
 	p, err := content.FromURL(mainCtx, maxmindurl.URL)
 	rtx.Must(err, "Could not get maxmind data from url")
 	geo := geoannotator.New(mainCtx, p, localIPs)
@@ -132,10 +143,6 @@ func main() {
 	}()
 
 	if *eventsocket.Filename != "" {
-		// Load the siteinfo annotations for "site" specific metadata.
-		js, err := content.FromURL(mainCtx, siteinfo.URL)
-		rtx.Must(err, "Could not load siteinfo URL")
-		site := siteannotator.New(mainCtx, mlabHostname, js, localIPs)
 
 		// Generate .json files for every UUID discovered.
 		h := handler.New(*datadir, *eventbuffersize, []annotator.Annotator{geo, asn, site})

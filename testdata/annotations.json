@@ -46,6 +46,23 @@
       },
       "Type": "virtual"
    },
+   "mlab1-six06.mlab-sandbox.measurement-lab.org": {
+      "Annotation": {
+         "Geo": {
+            "City": "New York"
+         },
+         "Machine": "mlab1",
+         "Network": {
+            "ASName": "TATA COMMUNICATIONS (AMERICA) INC"
+         },
+         "Site": "six06"
+      },
+      "Network": {
+         "IPv4": "64.86.148.129/32",
+         "IPv6": "2001:5a0:4300::/64"
+      },
+      "Type": "virtual"
+   },
    "mlab1-six01.mlab-sandbox.measurement-lab.org": {
       "Annotation": {
          "Geo": {
