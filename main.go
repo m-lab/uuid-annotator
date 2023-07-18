@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -71,6 +72,10 @@ func findLocalIPs(localAddrs []net.Addr) []net.IP {
 func main() {
 	flag.Parse()
 	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not get args from environment variables")
+
+	// Create the datatype directory immediately, since pusher will crash
+	// without it.
+	rtx.Must(os.MkdirAll(*datadir, 0755), "Could not create datatype dir %s", datadir)
 
 	// Parse the node's name into its constituent parts. This ensures that the
 	// value of the -hostname flag is actually valid. Additionally, virtual
