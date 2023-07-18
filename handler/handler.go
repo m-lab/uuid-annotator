@@ -34,7 +34,7 @@ func (j *job) WriteFile(dir string, data *annotator.Annotations) error {
 
 	// Create the necessary subdirectories.
 	dir = dir + j.timestamp.Format("/2006/01/02/")
-	err = fs.MkdirAll(dir, 0777)
+	err = fs.MkdirAll(dir, 0755)
 	if err != nil {
 		return err
 	}
