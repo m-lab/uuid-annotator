@@ -1,5 +1,5 @@
 # Build uuid-annotator
-FROM golang:1.18 as build
+FROM golang:1.20 as build
 COPY . /go/src/github.com/m-lab/uuid-annotator
 WORKDIR /go/src/github.com/m-lab/uuid-annotator
 RUN go get -v . && \
