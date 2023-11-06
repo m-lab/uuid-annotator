@@ -69,3 +69,13 @@ docker run -v $PWD/testdata:/testdata -it local-annotator   \
     -routeview-v4.url=file:///testdata/RouteViewIPv4.pfx2as.gz \
     -routeview-v6.url=file:///testdata/RouteViewIPv6.pfx2as.gz
 ```
+
+### Generate Schemas
+
+If using uuid-annotator data as part of the autoloader pipeline, you may
+generate the data type schemas using the `generate-schemas` command:
+
+```sh
+docker run -v $PWD:/schemas --entrypoint /generate-schemas -it local-annotator \
+    -ann2 /schemas/ann2.json -hop2 /schemas/hop2.json
+```
