@@ -30,16 +30,16 @@ type siteAnnotator struct {
 var ErrHostnameNotFound = errors.New("hostname not found")
 
 // New makes a new server Annotator using metadata from siteinfo JSON.
-func New(ctx context.Context, hostname string, js content.Provider, localIPs []net.IP) annotator.Annotator {
+func New(ctx context.Context, hostname string, js content.Provider, localIPs []net.IP) (annotator.Annotator, []net.IP) {
 	g := &siteAnnotator{
 		siteinfoSource: js,
 		hostname:       hostname,
-		localIPs:       localIPs,
 	}
 	var err error
-	g.server, err = g.load(ctx)
+	g.server, localIPs, err = g.load(ctx, localIPs)
+	g.localIPs = localIPs
 	rtx.Must(err, "Could not load annotation db")
-	return g
+	return g, localIPs
 }
 
 // Annotate assigns the server geolocation and ASN metadata.
@@ -109,22 +109,34 @@ func parseCIDR(v4, v6 string) (net.IPNet, net.IPNet, error) {
 }
 
 // load unconditionally loads siteinfo dataset and returns them.
-func (g *siteAnnotator) load(ctx context.Context) (*annotator.ServerAnnotations, error) {
+func (g *siteAnnotator) load(ctx context.Context, localIPs []net.IP) (*annotator.ServerAnnotations, []net.IP, error) {
 	js, err := g.siteinfoSource.Get(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	var s map[string]siteinfoAnnotation
 	err = json.Unmarshal(js, &s)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if v, ok := s[g.hostname]; ok {
 		g.v4, g.v6, err = parseCIDR(v.Network.IPv4, v.Network.IPv6)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return &v.Annotation, nil
+		// If this is a virtual site, append the site's public IP address to
+		// localIPs. The public address of the load balancer is not known on any
+		// interface on the machine. Without adding it to localIPs,
+		// uuid-annotator will fail to recognize its own public address in
+		// either the Src or Dest fields of incoming tcp-info events, and will
+		// fail to annotate anything.
+		if v.Type == "virtual" {
+			// Ignore IPNet and error, since parseCIDR() above has already
+			// validated the IP addresses.
+			ip, _, _ := net.ParseCIDR(v.Network.IPv4)
+			localIPs = append(localIPs, ip)
+		}
+		return &v.Annotation, localIPs, nil
 	}
-	return nil, ErrHostnameNotFound
+	return nil, nil, ErrHostnameNotFound
 }
