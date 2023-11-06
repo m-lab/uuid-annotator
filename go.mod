@@ -1,10 +1,10 @@
 module github.com/m-lab/uuid-annotator
 
-go 1.18
+go 1.20
 
 require (
 	github.com/go-test/deep v1.0.6
-	github.com/m-lab/go v0.1.57
+	github.com/m-lab/go v0.1.66
 	github.com/m-lab/tcp-info v1.5.3
 	github.com/oschwald/geoip2-golang v1.7.0
 	github.com/prometheus/client_golang v1.12.2
