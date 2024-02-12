@@ -131,11 +131,9 @@ func (g *siteAnnotator) load(ctx context.Context, localIPs []net.IP) (*annotator
 		// either the Src or Dest fields of incoming tcp-info events, and will
 		// fail to annotate anything.
 		if v.Type == "virtual" {
-			// Ignore IPNet and error, since parseCIDR() above has already
-			// validated the IP addresses.
-			ip, _, _ := net.ParseCIDR(v.Network.IPv4)
-			localIPs = append(localIPs, ip)
+			localIPs = append(localIPs, g.v4.IP, g.v6.IP)
 		}
+
 		return &v.Annotation, localIPs, nil
 	}
 	return nil, nil, ErrHostnameNotFound
