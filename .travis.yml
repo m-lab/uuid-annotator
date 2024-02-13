@@ -14,4 +14,4 @@ script:
 - go build ./...
 - go test ./... -cover=1 -coverprofile=_c.cov
 - go test ./... -race
-- $GOPATH/bin/goveralls -service=travis-ci -coverprofile=_c.cov
+- $GOPATH/bin/goveralls -service=travis-pro -coverprofile=_c.cov
