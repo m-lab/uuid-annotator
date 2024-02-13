@@ -124,18 +124,16 @@ func (g *siteAnnotator) load(ctx context.Context, localIPs []net.IP) (*annotator
 		if err != nil {
 			return nil, nil, err
 		}
-		// If this is a virtual site, append the site's public IP address to
-		// localIPs. The public address of the load balancer is not known on any
-		// interface on the machine. Without adding it to localIPs,
-		// uuid-annotator will fail to recognize its own public address in
+		// If this is a virtual site, append the site's public IP addresses to
+		// localIPs. The public addresses of the load balancer are not known on
+		// any interface on the machine. Without adding them to localIPs,
+		// uuid-annotator will fail to recognize its own public addresses in
 		// either the Src or Dest fields of incoming tcp-info events, and will
 		// fail to annotate anything.
 		if v.Type == "virtual" {
-			// Ignore IPNet and error, since parseCIDR() above has already
-			// validated the IP addresses.
-			ip, _, _ := net.ParseCIDR(v.Network.IPv4)
-			localIPs = append(localIPs, ip)
+			localIPs = append(localIPs, g.v4.IP, g.v6.IP)
 		}
+
 		return &v.Annotation, localIPs, nil
 	}
 	return nil, nil, ErrHostnameNotFound
