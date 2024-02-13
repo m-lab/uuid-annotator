@@ -289,7 +289,7 @@ func Test_srvannotator_load(t *testing.T) {
 					ASName: "TATA COMMUNICATIONS (AMERICA) INC",
 				},
 			},
-			wantLocalIPs: append(testLocalIPs, net.ParseIP("64.86.148.129")),
+			wantLocalIPs: append(testLocalIPs, net.ParseIP("64.86.148.129").To4(), net.ParseIP("2001:5a0:4300::")),
 		},
 		{
 			name:     "error-bad-ipv4",
