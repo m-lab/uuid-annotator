@@ -36,6 +36,18 @@ type asnAnnotator struct {
 	asnames    ipinfo.ASNames
 }
 
+// NewIPv4 makes a new IPv4-only Annotator that uses IP addresses to lookup ASN metadata for
+// that IP based on the current copy of RouteViews data stored in the given providers.
+func NewIPv4(ctx context.Context, as4 content.Provider) ASNAnnotator {
+	a := &asnAnnotator{
+		as4: as4,
+	}
+	var err error
+	a.asn4, err = load(ctx, as4, nil)
+	rtx.Must(err, "Could not load Routeviews IPv4 ASN db")
+	return a
+}
+
 // New makes a new Annotator that uses IP addresses to lookup ASN metadata for
 // that IP based on the current copy of RouteViews data stored in the given providers.
 func New(ctx context.Context, as4 content.Provider, as6 content.Provider, asnamedata content.Provider, localIPs []net.IP) ASNAnnotator {
@@ -97,6 +109,10 @@ func (a *asnAnnotator) annotateIPHoldingLock(src string) *annotator.Network {
 		metrics.ASNSearches.WithLabelValues("ipv4-success").Inc()
 		return ann
 	}
+	if a.asn6 == nil {
+		ann.Missing = true
+		return ann
+	}
 
 	ipnet, err = a.asn6.Search(src)
 	if err != nil {
@@ -126,15 +142,19 @@ func (a *asnAnnotator) Reload(ctx context.Context) {
 		log.Println("Could not reload v4 routeviews:", err)
 		return
 	}
-	new6, err := load(ctx, a.as6, a.asn6)
-	if err != nil {
-		log.Println("Could not reload v6 routeviews:", err)
-		return
-	}
-	newnames, err := loadNames(ctx, a.asnamedata, a.asnames)
-	if err != nil {
-		log.Println("Could not reload asnames from ipinfo:", err)
-		return
+	var new6 routeview.Index
+	var newnames ipinfo.ASNames
+	if a.as6 != nil {
+		new6, err = load(ctx, a.as6, a.asn6)
+		if err != nil {
+			log.Println("Could not reload v6 routeviews:", err)
+			return
+		}
+		newnames, err = loadNames(ctx, a.asnamedata, a.asnames)
+		if err != nil {
+			log.Println("Could not reload asnames from ipinfo:", err)
+			return
+		}
 	}
 	// Don't acquire the lock until after the data is in RAM.
 	a.m.Lock()

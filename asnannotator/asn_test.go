@@ -305,3 +305,41 @@ func TestNewFake(t *testing.T) {
 		t.Error("Should have had a missing return value, not", n3)
 	}
 }
+
+func Test_IPv4Annotator_AnnotateIP(t *testing.T) {
+	setUp()
+	tests := []struct {
+		name string
+		addr string
+		want annotator.Network
+	}{
+		{
+			name: "success-ipv4",
+			addr: "1.0.0.1",
+			want: annotator.Network{
+				CIDR:     "1.0.0.0/24",
+				ASNumber: 13335,
+				Systems: []annotator.System{
+					{ASNs: []uint32{13335}},
+				},
+			},
+		},
+		{
+			name: "success-ipv6",
+			addr: "2001:200::1",
+			want: annotator.Network{
+				Missing: true,
+			},
+		},
+	}
+	ctx := context.Background()
+	a := NewIPv4(ctx, local4Rawfile)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := a.AnnotateIP(tt.addr)
+			if diff := deep.Equal(*got, tt.want); diff != nil {
+				t.Error("AnnotateIP() wrong value; got!=want", diff)
+			}
+		})
+	}
+}
