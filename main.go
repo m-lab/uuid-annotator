@@ -95,7 +95,7 @@ func main() {
 	// https://siteinfo.mlab-oti.measurementlab.net/v2/sites/annotations.json
 	h, err := host.Parse(*hostname)
 	rtx.Must(err, "Failed to parse the provided hostname")
-	mlabHostname := h.String()
+	mlabHostname := h.StringWithService()
 
 	defer mainCancel()
 	// A waitgroup that waits for every component goroutine to complete before main exits.
