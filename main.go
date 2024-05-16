@@ -28,6 +28,7 @@ import (
 var (
 	datadir         = flag.String("datadir", ".", "The directory to put the data in")
 	hostname        = flag.String("hostname", "", "The server hostname, used to lookup server siteinfo annotations")
+	hostnameFile    = flagx.FileBytes{}
 	maxmindurl      = flagx.URL{}
 	routeviewv4     = flagx.URL{}
 	routeviewv6     = flagx.URL{}
@@ -49,6 +50,7 @@ var (
 )
 
 func init() {
+	flag.Var(&hostnameFile, "hostname-file", "The file containing the server hostname.")
 	flag.Var(&maxmindurl, "maxmind.url", "The URL for the file containing MaxMind IP metadata.  Accepted URL schemes currently are: gs://bucket/file and file:./relativepath/file")
 	flag.Var(&routeviewv4, "routeview-v4.url", "The URL for the RouteViewIPv4 file containing ASN metadata. gs:// and file:// schemes accepted.")
 	flag.Var(&routeviewv6, "routeview-v6.url", "The URL for the RouteViewIPv6 file containing ASN metadata. gs:// and file:// schemes accepted.")
@@ -73,6 +75,12 @@ func main() {
 	flag.Parse()
 	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not get args from environment variables")
 
+	// If the -hostname flag was not set, try reading the hostname from the
+	// -hostname-file.
+	if hostnameFile.String() != "" && *hostname == "" {
+		*hostname = hostnameFile.String()
+	}
+
 	// Create the datatype directory immediately, since pusher will crash
 	// without it.
 	rtx.Must(os.MkdirAll(*datadir, 0755), "Could not create datatype dir %s", datadir)
@@ -87,7 +95,7 @@ func main() {
 	//
 	// https://siteinfo.mlab-oti.measurementlab.net/v2/sites/annotations.json
 	h, err := host.Parse(*hostname)
-	rtx.Must(err, "Failed to parse -hostname flag value")
+	rtx.Must(err, "Failed to parse the provided hostname")
 	mlabHostname := h.String()
 
 	defer mainCancel()
