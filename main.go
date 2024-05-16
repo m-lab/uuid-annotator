@@ -75,9 +75,8 @@ func main() {
 	flag.Parse()
 	rtx.Must(flagx.ArgsFromEnv(flag.CommandLine), "Could not get args from environment variables")
 
-	// If the -hostname flag was not set, try reading the hostname from the
-	// -hostname-file.
-	if hostnameFile.String() != "" && *hostname == "" {
+	// If -hostname-file was set, use it instead of -hostname.
+	if hostnameFile.String() != "" {
 		*hostname = hostnameFile.String()
 	}
 
